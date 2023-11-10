@@ -101,24 +101,24 @@ class matchingGraph:
 
         if belonging %2 == 0:
             # 進む先のノードの候補
-            a = self.get_other_side(next_id, belonging=0)
-            a = [i 
-                for i in a 
+            opposite = self.get_other_side(next_id, belonging=0)
+            opposite = [i 
+                for i in opposite 
                     if i not in road[0::2]
                     # まだ通っていない道かどうか
                 ]
-            a = [i 
-                for i in a 
+            opposite = [i 
+                for i in opposite 
                     if (next_id,i) not in self.matching_set
                     # マッチングに含まれて**いない**もの
                 ]
-            a = [i
-                for i in a
+            opposite = [i
+                for i in opposite
                     if i not in self.marked_bnode
             ]
-            if a:# 進める道がある場合
-                for i in a:
-                    self.marked_bnode = self.marked_bnode+a
+            if opposite:# 進める道がある場合
+                for i in opposite:
+                    self.marked_bnode = self.marked_bnode+opposite
                     self.incr_road.append(i)
                     self.get_incr_roads(i,belonging=1)
                     
@@ -128,25 +128,25 @@ class matchingGraph:
                 pass
         else:
             # 進む先のノードの候補
-            b = self.get_other_side(next_id,belonging=1)
-            b = [i
-                for i in b
+            opposite = self.get_other_side(next_id,belonging=1)
+            opposite = [i
+                for i in opposite
                     if i not in road[1::2]
                     # まだ通っていない道かどうか
             ]
-            b = [i
-                for i in b
+            opposite = [i
+                for i in opposite
                     if (i,next_id) in self.matching_set
                     # マッチングに含まれて**いる**もの
             ]
-            b = [i
-                for i in b
+            opposite = [i
+                for i in opposite
                     if i not in self.marked_anode
             ]
 
-            if b:# 進める道がある場合
-                for i in b:
-                    self.marked_anode = self.marked_anode+b
+            if opposite:# 進める道がある場合
+                for i in opposite:
+                    self.marked_anode = self.marked_anode+opposite
                     self.incr_road.append(i)
                     self.get_incr_roads(i,belonging=0)
                     
