@@ -19,12 +19,13 @@ class node:
 class matchingGraph:
 
     def __init__(self,anodes:list[node],bnodes:list[node]):
-        self.anodes = anodes #0
-        self.bnodes = bnodes #1
-        self.sides = []
-        self.matching_set=[]
+        self.anodes:list[node] = anodes #0
+        self.bnodes:list[node] = bnodes #1
+        self.sides:list[tuple[int,int]] = []
+        self.matching_set:list[tuple[int,int]]=[]#
 
-        self.incr_road_list=[]
+        self.incr_roads:list[list[int]]=[]
+        self.incr_road:list[int]=[]
 
     def add_side(self,anode:int,bnode:int):
         """
@@ -78,24 +79,55 @@ class matchingGraph:
                 if i.id in matching_list
         )
 
-    def incr_road(self,road:list[int],node_id: int, belonging=0):
+    def get_incr_roads(self,node_id: int, belonging=0):
         """
         node引数はマッチしていないものでanodesに属するものを選ぶ必要がある
         返り値は増加道を表現したリスト
         """
+        road:list[int] = copy.deepcopy(self.incr_road)
+        step=0
+        next_id=node_id
+        
         if belonging%2==0:
-            a = self.get_other_side(node_id,belonging=belonging)
-            if a:
+            a = self.get_other_side(next_id,belonging=0)
+            a = [i 
+                for i in a 
+                    if i not in road[0::2]
+                    # まだ通っていない道かどうか
+                ]
+            a = [i 
+                for i in a 
+                    if (next_id,i) not in self.matching_set
+                    # マッチングに含まれて**いない**もの
+                ]
+            
+            if a:# 進める道がある場合
                 for i in a:
-                    self.incr_road_list.append(
-                        road+self.incr_road(road+[i],i,belonging=1)
-                    )
-            else:
-                return road
-        else:
-            b = self.get_other_side(node_id,belonging=belonging)
-            for i in b:
+                    self.incr_road.append(i)
+                    self.get_incr_roads(i,belonging=1)
+                    self.incr_road=road
+            else:  # もし進める道がない
                 pass
+        else:
+            b = self.get_other_side(next_id,belonging=1)
+            b = [i
+                for i in b
+                    if i not in road[1::2]
+            ]
+            b = [i
+                for i in b
+                    if (i,next_id) in self.matching_set
+                    # マッチングに含まれて**いる**もの
+            ]
+
+            if b:# 進める道がある場合
+                for i in b:
+                    self.incr_road.append(i)
+                    self.get_incr_roads(i,belonging=0)
+                    self.incr_road=road
+            else:  # 進める道がない場合
+                self.incr_roads.append(self.incr_road)
+        step+=1
 
 
     def max_matching():
@@ -171,6 +203,7 @@ if __name__=="__main__":
     )
 
     mgraph.matching_set = [(0, 1), (1, 4), (3, 3)]
+    mgraph.get_incr_roads(4, belonging=0)
     pprint(
-        mgraph.incr_road(4, belonging=0)
+        mgraph.incr_roads
     )
