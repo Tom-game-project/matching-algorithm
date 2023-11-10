@@ -85,7 +85,26 @@ class matchingGraph:
                 if i.id in matching_list
         )
 
-    def get_incr_roads(self,node_id: int, belonging=0):
+    def get_incr_roads(self,start_node_id:int):
+        """
+        左側にある、まだマッチしていないnodeのidを引数にとります
+        増加道かまたは変更可能なノード先を返却します
+        
+        """
+        # 変数の初期化
+        self.incr_roads: list[list[int]] = []
+        self.incr_road: list[int] = []
+
+        self.marked_anode: list[int] = []  # 左側の頂点集合で使用されたもの
+        self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
+
+        self.marked_anode.append(start_node_id)# node_id と合わせる
+        self.__get_incr_roads__process(start_node_id,belonging=0)
+
+        return self.incr_roads
+
+
+    def __get_incr_roads__process(self,node_id: int, belonging=0):
         """
         node引数はマッチしていないものでanodesに属するものを選ぶ必要がある
         返り値は増加道を表現したリスト
@@ -120,7 +139,7 @@ class matchingGraph:
                 for i in opposite:
                     self.marked_bnode = self.marked_bnode+opposite
                     self.incr_road.append(i)
-                    self.get_incr_roads(i,belonging=1)
+                    self.__get_incr_roads__process(i,belonging=1)
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
@@ -148,7 +167,7 @@ class matchingGraph:
                 for i in opposite:
                     self.marked_anode = self.marked_anode+opposite
                     self.incr_road.append(i)
-                    self.get_incr_roads(i,belonging=0)
+                    self.__get_incr_roads__process(i,belonging=0)
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
@@ -229,10 +248,9 @@ if __name__=="__main__":
         list(mgraph.find_unmatching_node(matching, belonging=0))
     )
 
-    mgraph.matching_set = [(0, 1), (1, 4), (3, 3)]
-    mgraph.marked_anode.append(4)# node_id と合わせる
-    mgraph.get_incr_roads(4, belonging=0)
+    mgraph.matching_set = [(1,3),(2,4),(3,1),(4,5)]
+    
     print("増加道")
     pprint(
-        mgraph.incr_roads
+        mgraph.get_incr_roads(4)
     )
