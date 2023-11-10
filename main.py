@@ -19,13 +19,19 @@ class node:
 class matchingGraph:
 
     def __init__(self,anodes:list[node],bnodes:list[node]):
-        self.anodes:list[node] = anodes #0
-        self.bnodes:list[node] = bnodes #1
-        self.sides:list[tuple[int,int]] = []
-        self.matching_set:list[tuple[int,int]]=[]#
+        self.anodes:list[node] = anodes # 0 頂点集合左
+        self.bnodes:list[node] = bnodes # 1 頂点集合右
 
+        self.sides:list[tuple[int,int]] = [] # 辺
+
+        self.matching_set:list[tuple[int,int]]=[] # マッチング集合
+
+        # 以下は増加道を発見する際に使います
         self.incr_roads:list[list[int]]=[]
         self.incr_road:list[int]=[]
+
+        self.marked_anode:list[int] = [] # 左側の頂点集合で使用されたもの
+        self.marked_bnode:list[int] = [] # 右側の頂点集合で使用されたもの
 
     def add_side(self,anode:int,bnode:int):
         """
@@ -33,7 +39,7 @@ class matchingGraph:
         """
         self.sides.append((anode,bnode))
 
-    # 相手となりうるnodeのiter
+    # 相手となりうるnodeのiterを返却します
     def get_other_side(self,node_id :int ,belonging=0) -> Generator[int,None,None]:
         return map(
             lambda b:b[belonging^1],# <-反転術式
@@ -85,11 +91,17 @@ class matchingGraph:
         返り値は増加道を表現したリスト
         """
         road:list[int] = copy.deepcopy(self.incr_road)
+        
+        marked_a_local = copy.deepcopy(self.marked_anode)
+        marked_b_local = copy.deepcopy(self.marked_bnode)
+
         step=0
         next_id=node_id
         
-        if belonging%2==0:
-            a = self.get_other_side(next_id,belonging=0)
+
+        if belonging %2 == 0:
+            # 進む先のノードの候補
+            a = self.get_other_side(next_id, belonging=0)
             a = [i 
                 for i in a 
                     if i not in road[0::2]
@@ -100,31 +112,46 @@ class matchingGraph:
                     if (next_id,i) not in self.matching_set
                     # マッチングに含まれて**いない**もの
                 ]
-            
+            a = [i
+                for i in a
+                    if i not in self.marked_bnode
+            ]
             if a:# 進める道がある場合
                 for i in a:
+                    self.marked_bnode = self.marked_bnode+a
                     self.incr_road.append(i)
                     self.get_incr_roads(i,belonging=1)
-                    self.incr_road=road
+                    
+                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
+                    self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             else:  # もし進める道がない
                 pass
         else:
+            # 進む先のノードの候補
             b = self.get_other_side(next_id,belonging=1)
             b = [i
                 for i in b
                     if i not in road[1::2]
+                    # まだ通っていない道かどうか
             ]
             b = [i
                 for i in b
                     if (i,next_id) in self.matching_set
                     # マッチングに含まれて**いる**もの
             ]
+            b = [i
+                for i in b
+                    if i not in self.marked_anode
+            ]
 
             if b:# 進める道がある場合
                 for i in b:
+                    self.marked_anode = self.marked_anode+b
                     self.incr_road.append(i)
                     self.get_incr_roads(i,belonging=0)
-                    self.incr_road=road
+                    
+                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
+                    self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
             else:  # 進める道がない場合
                 self.incr_roads.append(self.incr_road)
         step+=1
@@ -203,7 +230,9 @@ if __name__=="__main__":
     )
 
     mgraph.matching_set = [(0, 1), (1, 4), (3, 3)]
+    mgraph.marked_anode.append(4)# node_id と合わせる
     mgraph.get_incr_roads(4, belonging=0)
+    print("増加道")
     pprint(
         mgraph.incr_roads
     )
