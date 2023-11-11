@@ -8,6 +8,7 @@ from pprint import pprint
 from typing import Generator
 import copy
 
+import time
 
 class node:
     """
@@ -181,7 +182,28 @@ class matchingGraph:
         のデータ形式を含んだリスト
         """
         incr_road_map = [start_node_id]+incr_list
-        return [(j, incr_road_map[i+1]) if i % 2 == 0 else (incr_road_map[i+1],j) for i, j in enumerate(incr_road_map[:-1])]
+        return [
+            (j, incr_road_map[i+1]) 
+            if i % 2 == 0 else 
+            (incr_road_map[i+1],j) 
+            for i, j in enumerate(incr_road_map[:-1])
+        ]
+    
+    def new_matching_set_creater(
+            self,
+            matching           :list[tuple[int,int]],   # 変更前のマッチング集合
+            remove_matching_set:list[tuple[int,int]],   # rm
+            add_matching_set   :list[tuple[int,int]]    # add
+        )                     ->list[tuple[int,int]]:   # 変更後のマッチング集合
+        """
+        正しく引数を入力すると
+        新しいマッチングを返します
+        """
+        return [i
+            for i in matching
+                # 取り除いて
+                if i not in remove_matching_set
+            ] + add_matching_set # 新しく追加する
 
 
 
@@ -208,7 +230,7 @@ class matchingGraph:
 
 
 
-#テスト用データ
+# テスト用データ
 
 works = [
     "A",
@@ -244,6 +266,8 @@ staff_ability = [
 
 
 if __name__=="__main__":
+
+    start=time.perf_counter()
     # nodeの設定
     staff_nodes = [node(i,j) for i,j in enumerate(staff_ability)]
     works_nodes = [node(i,j) for i,j in enumerate(works)]
@@ -270,12 +294,27 @@ if __name__=="__main__":
         # iは増加道
         incr_rord=mgraph.incr_sides_iter(4,i)
         
-        print("削除する古いマッチング集合")
+        print("削除する古いマッチング")
         print(
-            incr_rord[1::2]
+            "-",
+            remove_matching_set:=incr_rord[1::2]
         )
-        print("追加できる新しいマッチング集合")
+        print("追加する新しいマッチング")
         print(
-            incr_rord[0::2]
-            , "\n"
+            "+",
+            add_matching_set:=incr_rord[0::2]
         )
+
+        print("変更後のマッチング")
+        print(
+            "->",
+            mgraph.new_matching_set_creater(
+                mgraph.matching_set,
+                remove_matching_set,
+                add_matching_set
+            ), "\n"
+        )
+    
+    end = time.perf_counter()
+
+    print("パフォーマンス",(end-start)*1000,"ms")
