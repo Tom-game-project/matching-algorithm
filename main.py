@@ -8,6 +8,7 @@ from pprint import pprint
 from typing import Generator
 import copy
 
+
 class node:
     """
     頂点(ノード)
@@ -15,6 +16,7 @@ class node:
     def __init__(self,id_:int,data):
         self.id = id_
         self.data=data
+
 
 class matchingGraph:
 
@@ -45,7 +47,7 @@ class matchingGraph:
             lambda b:b[belonging^1],# <-反転術式
             filter(lambda a:a[belonging]==node_id,self.sides)
         )
-    
+
     def init_matching(self):
         """
         初期マッチング
@@ -59,18 +61,18 @@ class matchingGraph:
                     self.matching_set.append((i.id,j))
                     break
 
-    def find_unmatching_node(self, matcing: list[tuple[int, int]], belonging=0) -> int:
+    def find_unmatching_node(self, matcing: list[tuple[int, int]], belonging=0) -> list[int]:
         """
         引数`matching`はマッチしたnodeのペアのリスト
         マッチしていないノードをiterで返却する
         """
         matching_list = [i[belonging] for i in matcing]
         target_nodes = self.anodes if belonging == 0 else self.bnodes
-        return (
+        return [
             i.id
             for i in target_nodes
             if i.id not in matching_list
-        )
+        ]
 
     def find_matching_node(self, matcing: list[(int, int)], belonging=0) -> int:
         """
@@ -89,7 +91,7 @@ class matchingGraph:
         """
         左側にある、まだマッチしていないnodeのidを引数にとります
         増加道かまたは変更可能なノード先を返却します
-        
+
         """
         # 変数の初期化
         self.incr_roads: list[list[int]] = []
@@ -103,7 +105,6 @@ class matchingGraph:
 
         return self.incr_roads
 
-
     def __get_incr_roads__process(self,node_id: int, belonging=0):
         """
         node引数はマッチしていないものでanodesに属するものを選ぶ必要がある
@@ -114,9 +115,7 @@ class matchingGraph:
         marked_a_local = copy.deepcopy(self.marked_anode)
         marked_b_local = copy.deepcopy(self.marked_bnode)
 
-        step=0
         next_id=node_id
-        
 
         if belonging %2 == 0:
             # 進む先のノードの候補
@@ -173,12 +172,40 @@ class matchingGraph:
                     self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
             else:  # 進める道がない場合
                 self.incr_roads.append(self.incr_road)
-        step+=1
+
+    def incr_sides_iter(self,start_node_id:int,incr_list:list[int])->list[tuple[int,int]]:
+        """
+        引数には増加道のみを含むリスト
+        戻り値は
+        (左ノード,右ノード)
+        のデータ形式を含んだリスト
+        """
+        incr_road_map = [start_node_id]+incr_list
+        return [(j, incr_road_map[i+1]) if i % 2 == 0 else (incr_road_map[i+1],j) for i, j in enumerate(incr_road_map[:-1])]
 
 
-    def max_matching():
-        # 
-        pass
+
+    def max_matching(self):
+        """
+        最大マッチングを探す
+
+        """
+        # ここでself.matching_setが初期化される
+        self.init_matching()
+
+        # 左側ノードの全てのアンマッチノードを探す
+        unmatch_list=self.find_unmatching_node(self.matching_set,belonging=0)
+
+        # 増加道を探す
+        matching = self.matching_set
+        incriment = [i 
+            for i in self.get_incr_roads()
+                if len(i) > 2
+        ] # 増加道のみを受け入れる
+        
+
+
+
 
 
 #テスト用データ
@@ -232,25 +259,23 @@ if __name__=="__main__":
         for j in i.data["capable"]:
             mgraph.add_side(i.id, works.index(j))
 
-    # マッチング初期化
-    mgraph.init_matching()
-    print(
-        "マッチング集合",
-        matching := mgraph.matching_set
-    )
-
-    for i in mgraph.sides:
-        print(i[0],"<->" if i in matching else " ->",i[1])
-
-    # マッチングしていないnodeのリスト
-    print(
-        "マッチングしていないnode",
-        list(mgraph.find_unmatching_node(matching, belonging=0))
-    )
-
-    mgraph.matching_set = [(1,3),(2,4),(3,1),(4,5)]
+    mgraph.matching_set = [(0, 1), (1, 4), (3,3)]
     
-    print("増加道")
-    pprint(
-        mgraph.get_incr_roads(4)
-    )
+    print("マッチング".center(30,"="))
+    for i in mgraph.matching_set:
+        print(i)
+    print("増加道".center(30,"="))
+    # 以下実験ではnodeid 4をスタートにして実験
+    for i in mgraph.get_incr_roads(4):
+        # iは増加道
+        incr_rord=mgraph.incr_sides_iter(4,i)
+        
+        print("削除する古いマッチング集合")
+        print(
+            incr_rord[1::2]
+        )
+        print("追加できる新しいマッチング集合")
+        print(
+            incr_rord[0::2]
+            , "\n"
+        )
