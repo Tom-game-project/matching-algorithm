@@ -274,27 +274,27 @@ if __name__=="__main__":
 
     mgraph.matching_set = [(0, 1), (1, 4), (3,3)]
     
-    print("マッチング".center(30,"="))
+    print("Base Matching".center(30,"="))
     for i in mgraph.matching_set:
         print(i)
-    print("増加道".center(30,"="))
+    print("incr road".center(30,"="))
     # 以下実験ではnodeid 4をスタートにして実験
     for i in mgraph.get_incr_roads(4):
         # iは増加道
         incr_rord=mgraph.incr_sides_iter(4,i)
         
-        print("削除する古いマッチング")
+        print("rm")
         print(
             "-",
             remove_matching_set:=incr_rord[1::2]
         )
-        print("追加する新しいマッチング")
+        print("add")
         print(
             "+",
             add_matching_set:=incr_rord[0::2]
         )
 
-        print("変更後のマッチング")
+        print("New Matching")
         print(
             "->",
             mgraph.new_matching_set_creater(
