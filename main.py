@@ -119,55 +119,44 @@ class matchingGraph:
         next_id=node_id
 
         if belonging %2 == 0:
-            # 進む先のノードの候補
-            opposite = self.get_other_side(next_id, belonging=0)
-            opposite = [i 
-                for i in opposite 
-                    if i not in road[0::2]
-                    # まだ通っていない道かどうか
-                ]
-            opposite = [i 
-                for i in opposite 
-                    if (next_id,i) not in self.matching_set
-                    # マッチングに含まれて**いない**もの
-                ]
-            opposite = [i
-                for i in opposite
-                    if i not in self.marked_bnode
+            opposite = [k
+                for k in filter(
+                    lambda j: (next_id, j) not in self.matching_set,
+                    filter(
+                        lambda i: i not in road[0::2],
+                        self.get_other_side(
+                            next_id, belonging=0)  # 進む先のノードの候補
+                    )
+                )
+                if k not in self.marked_bnode
             ]
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_bnode = self.marked_bnode+opposite
                     self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=1)
+                    self.__get_incr_roads__process(i,belonging=1) # 再帰部分
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             else:  # もし進める道がない
                 pass
         else:
-            # 進む先のノードの候補
-            opposite = self.get_other_side(next_id,belonging=1)
-            opposite = [i
-                for i in opposite
-                    if i not in road[1::2]
-                    # まだ通っていない道かどうか
+            opposite = [k
+                for k in filter(
+                    lambda j: (j, next_id) in self.matching_set,
+                    filter(
+                        lambda i: i not in road[1::2],
+                        self.get_other_side(
+                            next_id, belonging=1)  # 進む先のノードの候補
+                    )
+                )  # マッチングに含まれて**いる**もの
+                if k not in self.marked_anode
             ]
-            opposite = [i
-                for i in opposite
-                    if (i,next_id) in self.matching_set
-                    # マッチングに含まれて**いる**もの
-            ]
-            opposite = [i
-                for i in opposite
-                    if i not in self.marked_anode
-            ]
-
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_anode = self.marked_anode+opposite
                     self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=0)
+                    self.__get_incr_roads__process(i,belonging=0) # 再帰部分
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
@@ -285,27 +274,27 @@ if __name__=="__main__":
 
     mgraph.matching_set = [(0, 1), (1, 4), (3,3)]
     
-    print("マッチング".center(30,"="))
+    print("Base Matching".center(30,"="))
     for i in mgraph.matching_set:
         print(i)
-    print("増加道".center(30,"="))
+    print("incr road".center(30,"="))
     # 以下実験ではnodeid 4をスタートにして実験
     for i in mgraph.get_incr_roads(4):
         # iは増加道
         incr_rord=mgraph.incr_sides_iter(4,i)
         
-        print("削除する古いマッチング")
+        print("rm")
         print(
             "-",
             remove_matching_set:=incr_rord[1::2]
         )
-        print("追加する新しいマッチング")
+        print("add")
         print(
             "+",
             add_matching_set:=incr_rord[0::2]
         )
 
-        print("変更後のマッチング")
+        print("New Matching")
         print(
             "->",
             mgraph.new_matching_set_creater(
