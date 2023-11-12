@@ -75,12 +75,12 @@ class matchingGraph:
             if i.id not in matching_list
         ]
 
-    def find_matching_node(self, matcing: list[(int, int)], belonging=0) -> int:
+    def find_matching_node(self, matching: list[(int, int)], belonging=0) -> int:
         """
         引数`matching`はマッチしたnodeのペアのリスト
         マッチしているノードをiterで返却する
         """
-        matching_list = [i[belonging] for i in matcing]
+        matching_list = [i[belonging] for i in matching]
         target_nodes = self.anodes if belonging == 0 else self.bnodes
         return (
             i.id
