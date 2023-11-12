@@ -88,7 +88,7 @@ class matchingGraph:
                 if i.id in matching_list
         )
 
-    def get_incr_roads(self,start_node_id:int):
+    def get_incr_roads(self,start_node_id:int)->list[list[int]]:
         """
         左側にある、まだマッチしていないnodeのidを引数にとります
         増加道かまたは変更可能なノード先を返却します
