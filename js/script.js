@@ -77,7 +77,74 @@ class matchingGraph{
         }
     }
 
-    findUnMatchingNode(){
-        
+    /**
+     * ## findUnMatchingNode
+     * ### 引数`matching`はマッチしたnodeのペアのリスト
+     * ### マッチしていないノードをリストで返却する
+     * 
+     * @param {Array<Array<Number>>} matching 
+     * @param {NUmber} belonging 
+     * @returns {Array<Number>}
+     */
+    findUnMatchingNode(matching,belonging=0){
+        matching_list = matching.map(i => i[belonging]);
+        target_node = belonging == 0 ? this.anodes : this.bnodes;
+
+        return target_node
+            .filter(i => !matching_list.includes(i.id))
+            .map(i => i.id);
     }
+
+
+    /**
+     * ## findMatchingNode
+     * ### 引数`matching`はマッチしたnodeのペアのリスト
+     * ### マッチしているノードをリストで返却する
+     * 
+     * @param {Array<Array<Number>>} matching 
+     * @param {NUmber} belonging 
+     * @returns {Array<Number>}
+     */
+    findMatchingNode(matching, belonging = 0) {
+        matching_list = matching.map(i => i[belonging]);
+        target_node = belonging == 0 ? this.anodes : this.bnodes;
+
+        return target_node
+            .filter(i => matching_list.includes(i.id))
+            .map(i => i.id);
+    }
+
+    /**
+     * ## getIncrRoads
+     * ### 左側にある、まだマッチしていないnodeのidを引数にとります
+     * ### 増加道かまたは変更可能なノード先を返却します
+     * @param {Number} start_node_id
+     * @returns {Array<Array<Number>>} 
+     */
+    getIncrRoads(start_node_id){
+        this.incr_roads=[];
+        this.incr_road=[];
+        
+        this.marked_anode=[];
+        this.marked_bnode=[];
+
+        this.marked_anode.push(start_node_id);
+        //todo!
+    }
+
+    getIncrRoadsProcess(nodeId,belonging=0){
+        road = structuredClone(this.incr_road);
+
+        marked_a_local = structuredClone(this.marked_anode);
+        marked_b_local = structuredClone(this.marked_bnode);
+
+        nextId = structuredClone(nodeId)
+
+        if (belonging%2==0){
+            //todo!
+        }else{
+            //todo!
+        }
+    }
+
 }
