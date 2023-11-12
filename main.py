@@ -62,12 +62,12 @@ class matchingGraph:
                     self.matching_set.append((i.id,j))
                     break
 
-    def find_unmatching_node(self, matcing: list[tuple[int, int]], belonging=0) -> list[int]:
+    def find_unmatching_node(self, matching: list[tuple[int, int]], belonging=0) -> list[int]:
         """
         引数`matching`はマッチしたnodeのペアのリスト
         マッチしていないノードをiterで返却する
         """
-        matching_list = [i[belonging] for i in matcing]
+        matching_list = [i[belonging] for i in matching]
         target_nodes = self.anodes if belonging == 0 else self.bnodes
         return [
             i.id
