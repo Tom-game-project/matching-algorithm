@@ -123,7 +123,7 @@ class matchingGraph:
                 for k in filter(
                     lambda j: (next_id, j) not in self.matching_set,
                     filter(
-                        lambda i: i not in road[0::2],
+                        lambda i: i not in road[0::2],# すでに通った左側ノードを除く
                         self.get_other_side(
                             next_id, belonging=0)  # 進む先のノードの候補
                     )
@@ -145,7 +145,7 @@ class matchingGraph:
                 for k in filter(
                     lambda j: (j, next_id) in self.matching_set,
                     filter(
-                        lambda i: i not in road[1::2],
+                        lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
                         self.get_other_side(
                             next_id, belonging=1)  # 進む先のノードの候補
                     )
