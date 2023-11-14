@@ -1,5 +1,5 @@
 /** 
- * @fileOverview マッチングアルゴリズムを実装したファイルです
+ * @fileOverview マッチングアルゴリズムを実装したjsファイルです
  * 
  * @author Tom0427
  * @version 1.0.0
@@ -131,7 +131,7 @@ class matchingGraph{
      * ### マッチしているノードをリストで返却する
      * 
      * @param {Array<Array<Number>>} matching 
-     * @param {NUmber} belonging 
+     * @param {Number} belonging 
      * @returns {Array<Number>}
      */
     findMatchingNode(matching, belonging = 0) {
@@ -181,7 +181,7 @@ class matchingGraph{
 
         nextId = structuredClone(nodeId)
 
-        if (belonging%2==0){
+        if (belonging%2==0){     //左側にいるとき
             //内側から
             let opposite = this.getOtherSide(nextId,1)
             .filter(
@@ -208,8 +208,8 @@ class matchingGraph{
                 //まだ進める場合
                 for (const i of opposite){
                     this.marked_bnode = this.marked_bnode.concat(opposite);
-                    this.incr_road(i);
-                    this.getIncrRoadsProcess(i,1);
+                    this.incr_road.push(i);
+                    this.getIncrRoadsProcess(i,1);  //再帰部分
 
                     this.incr_road = structuredClone(road);
                     this.marked_anode = structuredClone(marked_a_local);
@@ -217,7 +217,7 @@ class matchingGraph{
             }else{
                 //もし進める道がない場合
             }
-        }else{
+        }else{                 //右側にいるとき
             //ここに挿入
             let opposite = this.getOtherSide(nextId,1)
             .filter(
@@ -231,31 +231,77 @@ class matchingGraph{
             ).filter(
                 //
                 i=>{
-                    //マッチングしているノードは除く
-                    !this.matching_set.includes((i,nextId))
+                    //マッチングしているノード
+                    this.matching_set.includes((i,nextId))
                 }
             ).filter(
                 i=>{
-                    //this.marked_bnodeに含まれているnodeは除く
+                    //this.marked_anodeに含まれているnodeは除く
                     !this.marked_anode.includes(i)
                 }
             )
             if (opposite){
                 //まだ進める場合
                 for (const i of opposite){
-                    this.marked_bnode = this.marked_bnode.concat(opposite);
-                    this.incr_road(i);
-                    this.getIncrRoadsProcess(i,1);
+                    this.marked_anode = this.marked_anode.concat(opposite);
+                    this.incr_road.push(i);
+                    this.getIncrRoadsProcess(i,0);    //再帰部分
 
                     this.incr_road = structuredClone(road);
-                    this.marked_anode = structuredClone(marked_a_local);
+                    this.marked_bnode = structuredClone(marked_b_local);
                 }
             }else{
                 //もし進める道がない場合
+                this.incr_roads.push(this.incr_road);
             }
         }
     }
 
+    /**
+     * ## incrSidesIter 
+     * 引数には増加道のみを含むリスト
+     * 戻り値は
+     * (左ノード,右ノード)
+     * のデータ形式を含んだリスト
+     * 
+     * @param {Number} start_node_id 
+     * @param {Array<Number>} incr_list 
+     * @returns {Array<Array<Nuber>>}
+     */
+    incrSidesIter(start_node_id,incr_list){
+        let incr_road_map = [start_node_id].concat(incr_list); 
+        
+        return [...Array(incr_road_map.slice(0,incr_road_map.length-1))]
+        .map((i,j)=>[j,incr_road_map[j]])//enumerate
+        .map(
+            i=>i[0]%2==0?
+            [i[1],incr_road_map[i[0]+1]]:
+            [incr_road_map[i[0]+1],i[1]]
+        )
+    }
+
+    /**
+     * 古いマッチングから新しいマッチングに更新します
+     * 
+     * @param {Array} matching 
+     * @param {Array} remove_matching_set 
+     * @param {Array} add_matching_set
+     * 
+     * @returns {Array<Array<Number>>} 
+     */
+    newMatchingSetCreator(matching,remove_matching_set,add_matching_set){
+        return matching.filter(i=>!remove_matching_set.includes(i)).concat(add_matching_set);
+    }
+
+    maxMatching(){
+        this.initMatching();
+
+        let unmatch_list = this.findMatchingNode(this.matching_set,0);
+
+        let matching = this.matching_set;
+        incriment = this.getIncrRoads().filter(i=>i.length>2);//増加道のみを受け入れる
+        
+    }
 }
 
 
