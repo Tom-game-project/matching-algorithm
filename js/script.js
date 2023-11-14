@@ -5,6 +5,11 @@
  * @version 1.0.0
  */
 
+
+
+/**
+ * 頂点ノードオブジェクト
+ */
 class node{
     /**
      * # 頂点(ノード)
@@ -39,7 +44,7 @@ class matchingGraph{
         /**
          * @type {Array<Array<Number>>}
          */
-        this.sides = []; // 辺
+        this.sides = Array(); // 辺
 
         /**
          * @type {Array<Array<Number>>}
@@ -74,7 +79,12 @@ class matchingGraph{
      * @param {Number} bnode 
      */
     addSide(anode,bnode){
-        this.sides.push([anode,bnode])
+        if (this.sides===undefined){
+            //this.sidesを安全に呼び出す
+            this.sides=[];
+        }
+
+        this.sides.push([anode,bnode]);
     }
 
     /**
@@ -84,10 +94,8 @@ class matchingGraph{
      * @param {Number} belonging 
      * @returns {Array<Number>}
      */
-    getOtherSide(nodeId,belonging=0){
-        return this.sides
-            .filter(a=>a[belonging]==nodeId)
-            .map(a=>a[belonging^1])
+    getOtherSide(nodeId,belonging){
+        return this.sides.filter(a=>a[belonging]==nodeId).map(a=>a[(belonging==1?0:1)])
     }
 
     /**
@@ -124,7 +132,6 @@ class matchingGraph{
             .map(i => i.id);
     }
 
-
     /**
      * ## findMatchingNode
      * ### 引数`matching`はマッチしたnodeのペアのリスト
@@ -158,9 +165,9 @@ class matchingGraph{
         this.marked_bnode=[];
 
         this.marked_anode.push(start_node_id);
-        this.getIncrRoadsProcess(start_node_id,belonging);
+        this.getIncrRoadsProcess(start_node_id,0);
 
-        return this.incr_roads;
+        return this.incr_roads
     }
 
     /**
@@ -172,38 +179,33 @@ class matchingGraph{
      * @param {Number} nodeId 
      * @param {Number} belonging 
      */
-    getIncrRoadsProcess(nodeId,belonging=0){
+    getIncrRoadsProcess(nodeId,belonging){
         //structureCloneはdeepClone
-        road = structuredClone(this.incr_road);
+        let road = structuredClone(this.incr_road);
 
-        marked_a_local = structuredClone(this.marked_anode);
-        marked_b_local = structuredClone(this.marked_bnode);
+        let marked_a_local = structuredClone(this.marked_anode);
+        let marked_b_local = structuredClone(this.marked_bnode);
 
-        nextId = structuredClone(nodeId)
+        let nextId = structuredClone(nodeId);
 
         if (belonging%2==0){     //左側にいるとき
             //内側から
-            let opposite = this.getOtherSide(nextId,1)
-            .filter(
-                i=>{
-                    //今までに通ったことのあるノードを除く
-                    !([...Array(road.length)]
-                    .map((i,j)=>j)
-                    .filter(i=>i%2==0)//偶数番のみ
-                    .map(i=>road[i]).includes(i));
-                }
-            ).filter(
-                //
-                i=>{
-                    //マッチングしているノードは除く
-                    !this.matching_set.includes((nextId,i))
-                }
-            ).filter(
-                i=>{
-                    //this.marked_bnodeに含まれているnodeは除く
-                    !this.marked_bnode.includes(i)
-                }
+            let opposite = this.getOtherSide(nextId,0);
+            
+            // 今までに通ったことのあるノードを除く
+            opposite=opposite.filter(
+                i=>
+                    ![...Array(road.length)]
+                    .map((j,k)=>k)
+                    .filter(k=>k%2==0)
+                    .map(k=>road[k]).includes(i)
             )
+            //マッチングしているノードは除く
+            opposite=opposite.filter(i=>
+                    !this.matching_set.some(j=>j[0]==nodeId&&j[1]==i)//includes [...]の変わり
+            )
+            opposite=opposite.filter(i=>!this.marked_bnode.includes(i))
+            
             if (opposite){
                 //まだ進める場合
                 for (const i of opposite){
@@ -220,26 +222,27 @@ class matchingGraph{
         }else{                 //右側にいるとき
             //ここに挿入
             let opposite = this.getOtherSide(nextId,1)
-            .filter(
-                i=>{
+            console.log("start",opposite)
+            opposite = opposite.filter(
+                i=>
                     //今までに通ったことのあるノードを除く
                     !([...Array(road.length)]
-                    .map((i,j)=>j)
-                    .filter(i=>i%2==1)//奇数番のみ
-                    .map(i=>road[i]).includes(i));
-                }
-            ).filter(
-                //
-                i=>{
-                    //マッチングしているノード
-                    this.matching_set.includes((i,nextId))
-                }
-            ).filter(
-                i=>{
-                    //this.marked_anodeに含まれているnodeは除く
-                    !this.marked_anode.includes(i)
-                }
+                    .map((j,k)=>k)
+                    .filter(k=>k%2==1)//奇数番のみ
+                    .map(k=>road[k]).includes(i))
             )
+            console.log("filter0",opposite)
+            opposite=opposite.filter(
+                //
+                i=>
+                    //マッチングしているノード
+                    this.matching_set.some(j=>j[0]==i&&j[1]==nextId)
+            )
+            console.log("filter1",opposite)
+            opposite=opposite.filter(
+                i=>!this.marked_anode.includes(i)
+            )
+            console.log("filter2",opposite)
             if (opposite){
                 //まだ進める場合
                 for (const i of opposite){
@@ -252,6 +255,7 @@ class matchingGraph{
                 }
             }else{
                 //もし進める道がない場合
+                console.log(this.incr_road)
                 this.incr_roads.push(this.incr_road);
             }
         }
@@ -300,11 +304,9 @@ class matchingGraph{
 
         let matching = this.matching_set;
         incriment = this.getIncrRoads().filter(i=>i.length>2);//増加道のみを受け入れる
-        
+        //todo!
     }
 }
-
-
 
 
 /**
@@ -315,7 +317,6 @@ class matchingGraph{
 function main(){
 
     ////サンプルデータの用意
-
     const works = [
         "A",
         "B",
@@ -324,7 +325,6 @@ function main(){
         "E",
         "F"
     ]
-
     const staff_ability = [
         {
             name: "1",
@@ -348,7 +348,72 @@ function main(){
         },
     ]
 
-    ////
+    ////nodeの設定
+    const staff_nodes = [...Array(staff_ability.length)].map((i,j)=>new node(j,staff_ability[j]));
+    const works_nodes = [...Array(works.length)].map((i,j)=>new node(j,works[j]));
 
+    let mgraph = new matchingGraph(
+        staff_nodes,
+        works_nodes
+    );//インスタンス化
 
+    //辺の追加
+
+    for (const i of staff_nodes){
+        for (const j of i.data.capable){
+            // jは役職の名前　例:A,B (..etc)
+            console.log(i.id,works.indexOf(j));
+            mgraph.addSide(
+                i.id,
+                works.indexOf(j)
+            );
+        }
+    }
+
+    mgraph.matching_set = [
+        [0, 1],
+        [1, 4],
+        [3, 3],
+    ]
+
+    console.log("------------include------------");
+    for (const i of mgraph.matching_set){
+        console.log(i);
+    }
+
+    console.log("------------incrroads------------")
+    for (const i of mgraph.getIncrRoads(4)){
+        let incr_road = mgraph.incrSidesIter(4,i);
+
+        //宣言だけ先にしておく
+        let remove_matching_set;
+        let add_matching_set;
+
+        console.log("rm");
+
+        console.log(
+            "-",
+            remove_matching_set = [...Array(incr_road.length-1)]//jsはセイウチ演算子を使わずに参照代入可能
+                .filter((j,k)=>k%2==1)
+                .map((j)=>incr_road[j])
+        );
+
+        console.log(
+            "+",
+            add_matching_set = [...Array(incr_road.length-1)]//jsはセイウチ演算子を使わずに参照代入可能
+                .filter((j,k)=>k%2==0)
+                .map((j)=>incr_road[j])
+        );
+
+        console.log("New Matching");
+        console.log(
+            "->",
+            mgraph.newMatchingSetCreator(
+                mgraph.matching_set,
+                remove_matching_set,
+                add_matching_set
+            )
+        )
+
+    }
 }main()
