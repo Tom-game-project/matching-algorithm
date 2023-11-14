@@ -118,7 +118,7 @@ class matchingGraph:
 
         next_id=node_id
 
-        if belonging %2 == 0:
+        if belonging %2 == 0:    #左側にいるとき
             opposite = [k
                 for k in filter(
                     lambda j: (next_id, j) not in self.matching_set,
@@ -140,7 +140,7 @@ class matchingGraph:
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             else:  # もし進める道がない
                 pass
-        else:
+        else:                   #右側にいるとき
             opposite = [k
                 for k in filter(
                     lambda j: (j, next_id) in self.matching_set,
