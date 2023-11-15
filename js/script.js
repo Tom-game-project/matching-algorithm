@@ -1,4 +1,5 @@
 /** 
+ * 同じリポジトリ内にあるpythonと同じ実装をしたjavascriptバージョン
  * @fileOverview マッチングアルゴリズムを実装したjsファイルです
  * 
  * @author Tom0427
