@@ -120,7 +120,7 @@ class matchingGraph{
      * ### マッチしていないノードをリストで返却する
      * 
      * @param {Array<Array<Number>>} matching 
-     * @param {NUmber} belonging 
+     * @param {Number} belonging 
      * @returns {Array<Number>}
      */
     findUnMatchingNode(matching,belonging=0){
@@ -206,7 +206,7 @@ class matchingGraph{
             )
             opposite=opposite.filter(i=>!this.marked_bnode.includes(i))
             
-            if (opposite){
+            if (opposite.length!==0){
                 //まだ進める場合
                 for (const i of opposite){
                     this.marked_bnode = this.marked_bnode.concat(opposite);
@@ -222,7 +222,6 @@ class matchingGraph{
         }else{                 //右側にいるとき
             //ここに挿入
             let opposite = this.getOtherSide(nextId,1)
-            console.log("start",opposite)
             opposite = opposite.filter(
                 i=>
                     //今までに通ったことのあるノードを除く
@@ -231,19 +230,16 @@ class matchingGraph{
                     .filter(k=>k%2==1)//奇数番のみ
                     .map(k=>road[k]).includes(i))
             )
-            console.log("filter0",opposite)
             opposite=opposite.filter(
                 //
                 i=>
                     //マッチングしているノード
                     this.matching_set.some(j=>j[0]==i&&j[1]==nextId)
             )
-            console.log("filter1",opposite)
             opposite=opposite.filter(
                 i=>!this.marked_anode.includes(i)
             )
-            console.log("filter2",opposite)
-            if (opposite){
+            if (opposite.length!==0){
                 //まだ進める場合
                 for (const i of opposite){
                     this.marked_anode = this.marked_anode.concat(opposite);
@@ -255,7 +251,6 @@ class matchingGraph{
                 }
             }else{
                 //もし進める道がない場合
-                console.log(this.incr_road)
                 this.incr_roads.push(this.incr_road);
             }
         }
@@ -274,14 +269,7 @@ class matchingGraph{
      */
     incrSidesIter(start_node_id,incr_list){
         let incr_road_map = [start_node_id].concat(incr_list); 
-        
-        return [...Array(incr_road_map.slice(0,incr_road_map.length-1))]
-        .map((i,j)=>[j,incr_road_map[j]])//enumerate
-        .map(
-            i=>i[0]%2==0?
-            [i[1],incr_road_map[i[0]+1]]:
-            [incr_road_map[i[0]+1],i[1]]
-        )
+        return [...Array(incr_road_map.length-1)].map((i,j) => j%2===0?[incr_road_map[j],incr_road_map[j+1]]:[incr_road_map[j+1],incr_road_map[j]])
     }
 
     /**
@@ -294,7 +282,12 @@ class matchingGraph{
      * @returns {Array<Array<Number>>} 
      */
     newMatchingSetCreator(matching,remove_matching_set,add_matching_set){
-        return matching.filter(i=>!remove_matching_set.includes(i)).concat(add_matching_set);
+        return matching
+        .filter(
+            i=>!remove_matching_set
+                .some(j=>j[0]===i[0]&&j[1]===i[1])
+            )
+        .concat(add_matching_set)
     }
 
     maxMatching(){
@@ -386,23 +379,28 @@ function main(){
         let incr_road = mgraph.incrSidesIter(4,i);
 
         //宣言だけ先にしておく
-        let remove_matching_set;
-        let add_matching_set;
+
+        
+        let remove_matching_set = [...Array(incr_road.length)]
+        .map((j,k)=>k)
+        .filter(k=>k%2===1)
+        .map(k=>incr_road[k]);
+        
+        let add_matching_set    = [...Array(incr_road.length)]
+        .map((j,k)=>k)
+        .filter(k=>k%2===0)
+        .map(k=>incr_road[k]);
 
         console.log("rm");
 
         console.log(
             "-",
-            remove_matching_set = [...Array(incr_road.length-1)]//jsはセイウチ演算子を使わずに参照代入可能
-                .filter((j,k)=>k%2==1)
-                .map((j)=>incr_road[j])
+            remove_matching_set
         );
-
+            
         console.log(
             "+",
-            add_matching_set = [...Array(incr_road.length-1)]//jsはセイウチ演算子を使わずに参照代入可能
-                .filter((j,k)=>k%2==0)
-                .map((j)=>incr_road[j])
+            add_matching_set
         );
 
         console.log("New Matching");
