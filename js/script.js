@@ -356,7 +356,6 @@ function main(){
     for (const i of staff_nodes){
         for (const j of i.data.capable){
             // jは役職の名前　例:A,B (..etc)
-            console.log(i.id,works.indexOf(j));
             mgraph.addSide(
                 i.id,
                 works.indexOf(j)
