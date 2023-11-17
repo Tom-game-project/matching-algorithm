@@ -193,6 +193,7 @@ class matchingGraph:
                 # 取り除いて
                 if i not in remove_matching_set
             ] + add_matching_set # 新しく追加する
+    
     def max_matching(self)->list[tuple(int,int)]:
         """
         任意の最大マッチングリストを返却する
@@ -219,6 +220,14 @@ class matchingGraph:
                     remove_matching_set,
                     add_matching_set
                 )
+
+    def find_all_max_matching(self):
+        """
+        全ての最大マッチングを返却する
+        同じ条件に対して出力の順番は常に同じである
+        """
+
+        pass
 
 
     def test_max_matching(self):
