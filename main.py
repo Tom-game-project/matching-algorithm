@@ -193,14 +193,39 @@ class matchingGraph:
                 # 取り除いて
                 if i not in remove_matching_set
             ] + add_matching_set # 新しく追加する
-
+    def max_matching(self)->list[tuple(int,int)]:
+        """
+        任意の最大マッチングリストを返却する
+        同じ条件に対して出力は常に同じになるが最大マッチングが一つになるとは限らない
+        """
+        self.init_matching() # マッチングを初期化する
+        while True: # 終了の保証が出来ない
+            unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
+            if len(unmatching_list)==0:
+                return self.matching_set
+            else:
+                incriment = [i 
+                    for i in self.get_incr_roads(unmatching_list[0])
+                        if len(i) > 2
+                ] # 増加道のみを受け入れる
+            if len(incriment)==0:
+                return self.matching_set
+            else:
+                incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
+                remove_matching_set=incr_rord[1::2]
+                add_matching_set=incr_rord[0::2]
+                self.matching_set = self.new_matching_set_creater(
+                    self.matching_set,
+                    remove_matching_set,
+                    add_matching_set
+                )
 
 
     def test_max_matching(self):
         """
-        最大マッチングを探す
-
+        最大マッチングを見つける関数作成のためのテスト
         """
+
         # ここでself.matching_setが初期化される
         self.init_matching()
 
@@ -225,7 +250,11 @@ class matchingGraph:
         print("Incr Road".center(30,"="))
         for i in unmatch_list:
             # 以下実験ではnodeid 4をスタートにして実験
-            for j in self.get_incr_roads(i):
+            incriment = [j
+                for j in self.get_incr_roads(i)
+                    if len(j) > 2
+            ] # 増加道のみを受け入れる
+            for j in incriment:
                 # iは増加道
                 incr_rord=self.incr_sides_iter(i,j)
                 
@@ -341,7 +370,11 @@ if __name__=="__main__":
         for j in i.data["capable"]:
             mgraph.add_side(i.id, works.index(j))
     
-    mgraph.test_max_matching()
+    # mgraph.test_max_matching()
+
+    print(
+        mgraph.max_matching()
+    )
 
     end = time.perf_counter()
 
