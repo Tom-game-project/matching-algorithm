@@ -7,3 +7,9 @@
 - マッチングアプリ
 
 - 最適組み合わせ
+
+## javascript版の使い方
+
+```js
+import {node,matchingGraph} from "./js/script.js";//マッチングライブラリ
+```
