@@ -8,6 +8,8 @@ from pprint import pprint
 from typing import Generator
 import copy
 
+import json
+
 import time
 
 class node:
@@ -194,7 +196,7 @@ class matchingGraph:
                 if i not in remove_matching_set
             ] + add_matching_set # 新しく追加する
     
-    def max_matching(self)->list[tuple(int,int)]:
+    def max_matching(self)->list[tuple[int,int]]:
         """
         任意の最大マッチングリストを返却する
         同じ条件に対して出力は常に同じになるが最大マッチングが一つになるとは限らない
@@ -221,13 +223,41 @@ class matchingGraph:
                     add_matching_set
                 )
 
-    def find_all_max_matching(self):
+    def find_all_max_matching(self):# 工事中
         """
         全ての最大マッチングを返却する
         同じ条件に対して出力の順番は常に同じである
         """
+        # 考慮すべき事項
+        # 増加道を見つけたからと言って最大マッチングを見つけたとは限らない
+        # 最大マッチングを見つけるまで増加道を見つけなければならない
+        # あるアンマッチノードをすべて探しても最大マッチングに到達しないのであれば
+        # そのノードを含んだ増加道を見つけることはできないので終了
 
-        pass
+        maxmatchlen = len(self.max_matching())# 最大マッチングのリストの長さ
+
+        self.init_matching() # マッチングを初期化する
+        while True: # 終了の保証が出来ない
+            unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
+            if len(unmatching_list)==0:
+                return self.matching_set
+            else:
+                incriment = [i 
+                    for i in self.get_incr_roads(unmatching_list[0])
+                        if len(i) > 2
+                ] # 増加道のみを受け入れる
+            
+            if len(incriment)==0:
+                return self.matching_set
+            else:
+                incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
+                remove_matching_set=incr_rord[1::2]
+                add_matching_set=incr_rord[0::2]
+                self.matching_set = self.new_matching_set_creater(
+                    self.matching_set,
+                    remove_matching_set,
+                    add_matching_set
+                )
 
 
     def test_max_matching(self):
@@ -382,7 +412,7 @@ if __name__=="__main__":
     # mgraph.test_max_matching()
 
     print(
-        mgraph.max_matching()
+        mgraph.find_all_max_matching()
     )
 
     end = time.perf_counter()

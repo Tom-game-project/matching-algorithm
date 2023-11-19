@@ -11,7 +11,7 @@
 /**
  * 頂点ノードオブジェクト
  */
-class node{
+export class node{
     /**
      * # 頂点(ノード)
      * 
@@ -25,14 +25,14 @@ class node{
 }
 
 
-class matchingGraph{
+export class matchingGraph{
     /**
      * anodes 頂点集合左
      * bnodes 頂点集合右
      * @param {Array<node>} anodes 
      * @param {Array<node>} bnodes 
      */
-    constractor(anodes,bnodes){
+    constructor(anodes,bnodes){
         /**
          * @type {Array<node>}
          */
@@ -73,6 +73,10 @@ class matchingGraph{
         this.marked_bnode = [];
     }
 
+    testPrint(){
+        console.log(this.anodes);
+        console.log(this.bnodes);
+    }
     /**
      * ## addSide
      * ### 辺を追加する
@@ -105,9 +109,10 @@ class matchingGraph{
      * ### マッチング(集合)を初期状態にする
      */
     initMatching(){
+        console.log(this.anodes);
         for (const i of this.anodes){
-            for (const j of this.getOtherSide(i.id,belonging=0)){
-                if (this.matching_set.map(a => a[1] !== j).every()){
+            for (const j of this.getOtherSide(i.id,0)){
+                if (this.matching_set.every(a => a[1] != j)){
                     this.matching_set.push([i.id,j]);
                     break;
                 }
@@ -125,8 +130,8 @@ class matchingGraph{
      * @returns {Array<Number>}
      */
     findUnMatchingNode(matching,belonging=0){
-        matching_list = matching.map(i => i[belonging]);
-        target_node = belonging == 0 ? this.anodes : this.bnodes;
+        let matching_list = matching.map(i => i[belonging]);
+        let target_node = belonging == 0 ? this.anodes : this.bnodes;
 
         return target_node
             .filter(i => !matching_list.includes(i.id))
@@ -291,14 +296,33 @@ class matchingGraph{
         .concat(add_matching_set)
     }
 
+    /**
+     * 任意の最大マッチングリストを返却します
+     * 同じ条件に対して出力は常に同じになりますが、最大マッチングが一つとは限りません
+     * @returns {Array<Array<Number>>}
+     */
     maxMatching(){
         this.initMatching();
+        while (true){
+            let unmatching_list = this.findUnMatchingNode(this.matching_set,0);
+            if (unmatching_list.length===0){
+                return this.matching_set;
+            }
+            let incriment = this.getIncrRoads(unmatching_list[0]).filter(i=>i.length>2);
+            if (incriment.length===0){
+                return this.matching_set
+            }else{
+                let incr_road=this.incrSidesIter(unmatching_list[0],incriment[0])
+                let remove_matching_set = [...Array(incr_road.length).keys()].filter(i=>i%2===1).map(i=>incr_road[i]);
+                let add_matching_set    = [...Array(incr_road.length).keys()].filter(i=>i%2===0).map(i=>incr_road[i]);
+                this.matching_set = this.newMatchingSetCreator(
+                    this.matching_set,
+                    remove_matching_set,
+                    add_matching_set
+                )
+            }
 
-        let unmatch_list = this.findMatchingNode(this.matching_set,0);
-
-        let matching = this.matching_set;
-        incriment = this.getIncrRoads().filter(i=>i.length>2);//増加道のみを受け入れる
-        //todo!
+        }
     }
 }
 
@@ -414,4 +438,4 @@ function main(){
         )
 
     }
-}main()
+}//main()

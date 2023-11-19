@@ -6,3 +6,6 @@
 # js
 
 /js/sub*.js
+
+# sample_data
+/data/
