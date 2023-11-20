@@ -4,11 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script> 
-    <title>Document</title>
+    <title>Matching</title>
     <style>
+        html,body {
+        height: 100%;
+        width: 100%;
+        margin: 0px;
+        padding: 0px;
+        }
+
         #mynetwork{
-            width: 600px;
-            height: 600px;
+            height: 100%;
+            top: 0px;
+            bottom: 0px;
+            right: 0px;
+            left: 0px;
         }
     </style>
 </head>
@@ -40,7 +50,7 @@
             }
         }
 
-        let max_match = mgraph.maxMatching()
+        let max_match = mgraph.maxMatching();
         console.log(
             "マックスマッチング",
             max_match
@@ -53,7 +63,7 @@
                     id : i,
                     label : staff[i].name,
                     x : 100,
-                    y : i*60,
+                    y : i*120,
                     shape: "box",
                     color: "#f9a8ff"
                 }
@@ -62,8 +72,8 @@
                 return {
                     id : i+staff.length,
                     label : works[i],
-                    x : 500,
-                    y : i*60
+                    x : 1000,
+                    y : i*120
                 }
             })
             );
@@ -76,7 +86,7 @@
                     from:i,
                     to:staff.length+works.indexOf(j)
                 };
-                if (max_match.some(k=>k[0]==i&&k[1]==works.indexOf(j))){
+                if (max_match.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
                     edge["color"]={ color: "#ff0000"} ;
                 }else{
                     edge["color"]={ color: "#0000ff"} ;
@@ -85,11 +95,9 @@
             }
         }
 
-        console.log("nodelist",nodeList);
         var nodes = new vis.DataSet(nodeList);
 
         // create an array with edges
-        console.log("edgelist",edgeList);
         var edges = new vis.DataSet(edgeList);
 
         // create a network

@@ -4,11 +4,12 @@
 # マッチングは頂点同士をペアにすることを意味している
 # max_matching関数はマッチングが最大になるようにしている
 
-from pprint import pprint
 from typing import Generator
-import copy
+import copy #再帰に処理時の配列保存よう
 
+import os
 import json
+from pprint import pprint
 
 import time
 
@@ -132,6 +133,7 @@ class matchingGraph:
                 )
                 if k not in self.marked_bnode
             ]
+
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_bnode = self.marked_bnode+opposite
@@ -141,7 +143,7 @@ class matchingGraph:
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             else:  # もし進める道がない
-                pass
+                print("進める道がない",road)
         else:                   #右側にいるとき
             opposite = [k
                 for k in filter(
@@ -154,6 +156,7 @@ class matchingGraph:
                 )  # マッチングに含まれて**いる**もの
                 if k not in self.marked_anode
             ]
+
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_anode = self.marked_anode+opposite
@@ -164,6 +167,68 @@ class matchingGraph:
                     self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
             else:  # 進める道がない場合
                 self.incr_roads.append(self.incr_road)
+    
+    def get_max_matching_from_hash(self,hash_:int,max_length:int):
+        """
+        任意の整数から最大マッチングを返却する
+        max_length : 最大マッチングのリストの長さ
+        """
+        road:list[int] = copy.deepcopy(self.incr_road)
+        
+        marked_a_local = copy.deepcopy(self.marked_anode)
+        marked_b_local = copy.deepcopy(self.marked_bnode)
+
+        unmatch_node = self.find_unmatching_node(self.matching_set,belonging=0)
+        next_id=unmatch_node[0]
+        belonging = 0
+
+        if belonging %2 == 0:    #左側にいるとき
+            opposite = [k
+                for k in filter(
+                    lambda j: (next_id, j) not in self.matching_set,
+                    filter(
+                        lambda i: i not in road[0::2],# すでに通った左側ノードを除く
+                        self.get_other_side(
+                            next_id, belonging=0)  # 進む先のノードの候補
+                    )
+                )
+                if k not in self.marked_bnode
+            ]
+
+            if opposite:# 進める道がある場合
+                for i in opposite:
+                    self.marked_bnode = self.marked_bnode+opposite
+                    self.incr_road.append(i)
+                    self.__get_incr_roads__process(i,belonging=1) # 再帰部分
+                    
+                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
+                    self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
+            else:  # もし進める道がない
+                print("進める道がない",road)
+        else:                   #右側にいるとき
+            opposite = [k
+                for k in filter(
+                    lambda j: (j, next_id) in self.matching_set,
+                    filter(
+                        lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
+                        self.get_other_side(
+                            next_id, belonging=1)  # 進む先のノードの候補
+                    )
+                )  # マッチングに含まれて**いる**もの
+                if k not in self.marked_anode
+            ]
+
+            if opposite:# 進める道がある場合
+                for i in opposite:
+                    self.marked_anode = self.marked_anode+opposite
+                    self.incr_road.append(i)
+                    self.__get_incr_roads__process(i,belonging=0) # 再帰部分
+                    
+                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
+                    self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
+            else:  # 進める道がない場合
+                self.incr_roads.append(self.incr_road)
+
 
     def incr_sides_iter(self,start_node_id:int,incr_list:list[int])->list[tuple[int,int]]:
         """
@@ -204,6 +269,7 @@ class matchingGraph:
         self.init_matching() # マッチングを初期化する
         while True: # 終了の保証が出来ない
             unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
+            print("unamatching list の長さ",len(unmatching_list))
             if len(unmatching_list)==0:
                 return self.matching_set
             else:
@@ -223,7 +289,41 @@ class matchingGraph:
                     add_matching_set
                 )
 
-    def find_all_max_matching(self):# 工事中
+    def max_matching2(self):
+        """
+        第二案
+        最大かどうかに関わらずとりあえず全てのマッチングに関して増加道が無くなるまで計算する
+        """
+
+        self.init_matching()
+        print(self.matching_set)
+        unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0)
+        for i in unmatching_list:
+            print("アンマッチ",i)
+            incrment = [
+                j for j in self.get_incr_roads(i)
+                if len(j)>1
+            ]
+            print("増加道",incrment)
+
+            for inc in incrment:
+                incr_road = self.incr_sides_iter(i,inc)
+                remove_matching_set = incr_road[1::2]
+                add_matching_set = incr_road[0::2]
+                changeedmatching = self.new_matching_set_creater(
+                    self.matching_set,
+                    remove_matching_set,
+                    add_matching_set
+                )
+                print(
+                    "第二案：",
+                    f"アンマッチノード {i}",
+                    
+                    "新しいマッチング",
+                    changeedmatching)
+
+
+    def find_all_max_matching(self):# 工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中
         """
         全ての最大マッチングを返却する
         同じ条件に対して出力の順番は常に同じである
@@ -319,7 +419,7 @@ class matchingGraph:
                 )
 
 
-def test0_function():
+def __test0_function():
     """
     test0 function 
     テスト用関数
@@ -358,40 +458,14 @@ def test0_function():
 
 
 
+backnum="0"
 # テスト用データ
-
-works = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F"
-]
-
-staff_ability = [
-    {
-        "name": "1",
-        "capable": ["B", "D"]
-    },
-    {
-        "name":"2",
-        "capable": ["A", "C", "E"]
-    },
-    {
-        "name":"3",
-        "capable": ["B"]
-    },
-    {
-        "name":"4",
-        "capable": ["D", "E", "F"]
-    },
-    {
-        "name":"5",
-        "capable": ["B", "D"]
-    },
-]
-
+with open(os.path.join("data",f"works{backnum}.json"),encoding="utf-8")as f:
+    works = json.load(f)
+    #pprint(works)
+with open(os.path.join("data",f"staff{backnum}.json"),encoding="utf-8")as f:
+    staff_ability = json.load(f)
+    #pprint(staff_ability)
 
 if __name__=="__main__":
 
@@ -408,12 +482,14 @@ if __name__=="__main__":
     for i in staff_nodes:
         for j in i.data["capable"]:
             mgraph.add_side(i.id, works.index(j))
-    
-    # mgraph.test_max_matching()
 
-    print(
-        mgraph.find_all_max_matching()
-    )
+    
+    mgraph.max_matching2()
+    
+
+    # print(
+    #     mgraph.find_all_max_matching()
+    # )
 
     end = time.perf_counter()
 

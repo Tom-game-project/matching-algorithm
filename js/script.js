@@ -7,7 +7,6 @@
  */
 
 
-
 /**
  * 頂点ノードオブジェクト
  */
@@ -298,6 +297,9 @@ export class matchingGraph{
      */
     maxMatching(){
         this.initMatching();
+        console.log(
+            this.matching_set                          //後で取り除く
+        );
         while (true){
             let unmatching_list = this.findUnMatchingNode(this.matching_set,0);
             if (unmatching_list.length===0){
