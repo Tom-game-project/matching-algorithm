@@ -65,6 +65,7 @@ class matchingGraph:
         一連のnodeと辺の設定が終わったら
         マッチング（集合）を初期状態にする
         """
+        self.matching_set=[]
         for i in self.anodes:
             for j in self.get_other_side(i.id,belonging=0):
                 if all(map(lambda a:a[1]!=j ,self.matching_set )):
@@ -244,7 +245,6 @@ class matchingGraph:
         self.init_matching() # マッチングを初期化する
         while True: # 終了の保証が出来ない
             unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
-            print("unamatching list の長さ",len(unmatching_list))
             if len(unmatching_list)==0:
                 return self.matching_set
             else:
@@ -271,31 +271,24 @@ class matchingGraph:
         """
 
         self.init_matching()
-        print(self.matching_set)
         unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0)
         for i in unmatching_list:
-            print("アンマッチ",i)
+            logging.debug("アンマッチ",i)
             incrment = [
                 j for j in self.get_incr_roads(i)
                 if len(j)>1
             ]
-            print("増加道",incrment)
-
+            logging.debug(f"増加道 {incrment}")
             for inc in incrment:
                 incr_road = self.incr_sides_iter(i,inc)
                 remove_matching_set = incr_road[1::2]
                 add_matching_set = incr_road[0::2]
-                changeedmatching = self.new_matching_set_creater(
+                changedmatching = self.new_matching_set_creater(
                     self.matching_set,
                     remove_matching_set,
                     add_matching_set
                 )
-                print(
-                    "第二案：",
-                    f"アンマッチノード {i}",
-                    
-                    "新しいマッチング",
-                    changeedmatching)
+                yield changedmatching
 
 
     def find_all_max_matching(self):# 工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中
@@ -457,11 +450,16 @@ if __name__=="__main__":
     for i in staff_nodes:
         for j in i.data["capable"]:
             mgraph.add_side(i.id, works.index(j))
+    
 
+    logging.debug("最大マッチング")
+    logging.debug(
+        mgraph.max_matching()
+    )
     
-    mgraph.max_matching2()
+    for i in mgraph.max_matching2():print("マッチング",i)
     
-    print(mgraph.get_incr_roads(8))
+    
     # print(
     #     mgraph.find_all_max_matching()
     # )

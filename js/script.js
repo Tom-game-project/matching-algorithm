@@ -104,6 +104,7 @@ export class matchingGraph{
      * ### マッチング(集合)を初期状態にする
      */
     initMatching(){
+        this.matching_set = [];
         for (const i of this.anodes){
             for (const j of this.getOtherSide(i.id,0)){
                 if (this.matching_set.every(a => a[1] != j)){
@@ -165,7 +166,27 @@ export class matchingGraph{
         this.marked_bnode=[];
 
         this.marked_anode.push(start_node_id);
-        this.getIncrRoadsProcess(start_node_id,0);
+        this.getIncrRoadsProcess(start_node_id,0,true);
+
+        return this.incr_roads
+    }
+
+    /**
+     * ## getIncrRoads
+     * ### 左側にある、まだマッチしていないnodeのidを引数にとります
+     * ### 増加道かまたは変更可能なノード先を返却します
+     * @param {Number} start_node_id
+     * @returns {Array<Array<Number>>} 
+     */
+    getIncrRoads2(start_node_id){
+        this.incr_roads=[];
+        this.incr_road=[];
+        
+        this.marked_anode=[];
+        this.marked_bnode=[];
+
+        this.marked_anode.push(start_node_id);
+        this.getIncrRoadsProcess(start_node_id,0,false);
 
         return this.incr_roads
     }
@@ -179,7 +200,7 @@ export class matchingGraph{
      * @param {Number} nodeId 
      * @param {Number} belonging 
      */
-    getIncrRoadsProcess(nodeId,belonging){
+    getIncrRoadsProcess(nodeId,belonging,flag){
         //structureCloneはdeepClone
         let road = structuredClone(this.incr_road);
 
@@ -188,7 +209,7 @@ export class matchingGraph{
 
         let nextId = structuredClone(nodeId);
 
-        if (belonging%2==0){     //左側にいるとき
+        if (belonging%2===0){     //左側にいるとき
             //内側から
             let opposite = this.getOtherSide(nextId,0);
             
@@ -198,7 +219,7 @@ export class matchingGraph{
                     ![...Array(road.length)]
                     .map((j,k)=>k)
                     .filter(k=>k%2==0)
-                    .map(k=>road[k]).includes(i)
+                    .map(k=>road[k]).includes(i)//road[0::2]
             )
             //マッチングしているノードは除く
             opposite=opposite.filter(i=>
@@ -211,13 +232,19 @@ export class matchingGraph{
                 for (const i of opposite){
                     this.marked_bnode = this.marked_bnode.concat(opposite);
                     this.incr_road.push(i);
-                    this.getIncrRoadsProcess(i,1);  //再帰部分
-
+                    this.getIncrRoadsProcess(i,1,flag);  //再帰部分
                     this.incr_road = structuredClone(road);
                     this.marked_anode = structuredClone(marked_a_local);
                 }
             }else{
                 //もし進める道がない場合
+                if (flag){
+                    this.incr_roads.push(this.incr_road);
+                }else{
+                    console.log(
+                        this.incr_road
+                    )
+                }
             }
         }else{                 //右側にいるとき
             //ここに挿入
@@ -228,7 +255,7 @@ export class matchingGraph{
                     !([...Array(road.length)]
                     .map((j,k)=>k)
                     .filter(k=>k%2==1)//奇数番のみ
-                    .map(k=>road[k]).includes(i))
+                    .map(k=>road[k]).includes(i))//road[1::2]
             )
             opposite=opposite.filter(
                 //
@@ -244,7 +271,7 @@ export class matchingGraph{
                 for (const i of opposite){
                     this.marked_anode = this.marked_anode.concat(opposite);
                     this.incr_road.push(i);
-                    this.getIncrRoadsProcess(i,0);    //再帰部分
+                    this.getIncrRoadsProcess(i,0,flag);    //再帰部分
 
                     this.incr_road = structuredClone(road);
                     this.marked_bnode = structuredClone(marked_b_local);
@@ -305,7 +332,9 @@ export class matchingGraph{
             if (unmatching_list.length===0){
                 return this.matching_set;
             }
-            let incriment = this.getIncrRoads(unmatching_list[0]).filter(i=>i.length>2);
+            let incriment = this.getIncrRoads(unmatching_list[0]);
+
+            incriment=incriment.filter(i=>i.length>2);
             if (incriment.length===0){
                 return this.matching_set
             }else{
@@ -319,6 +348,26 @@ export class matchingGraph{
                 )
             }
 
+        }
+    }
+
+    *maxMatching2(){
+        //ジェネレーター
+        this.initMatching();
+        let unmatching_list = this.findUnMatchingNode(this.matching_set,0);
+        for (const i of unmatching_list){
+            let incriment = this.getIncrRoads(i).filter(j=>j.length>1);
+            for (const inc of incriment){
+                let incr_road = this.incrSidesIter(i,inc);
+                let remove_matching_set = [...Array(incr_road.length).keys()].filter(j=>j%2===1).map(j=>incr_road[j])
+                let add_matching_set = [...Array(incr_road.length).keys()].filter(j=>j%2===0).map(j=>incr_road[j]);
+                let changedmatching = this.newMatchingSetCreator(
+                    this.matching_set,
+                    remove_matching_set,
+                    add_matching_set
+                    )
+                    yield changedmatching;
+            }
         }
     }
 }
