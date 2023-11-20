@@ -11,7 +11,10 @@ import os
 import json
 from pprint import pprint
 
+import logging
 import time
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class node:
     """
@@ -47,6 +50,9 @@ class matchingGraph:
 
     # 相手となりうるnodeのiterを返却します
     def get_other_side(self,node_id :int ,belonging=0) -> Generator[int,None,None]:
+        """
+        対岸で且つ進んでいけるノード
+        """
         return map(
             lambda b:b[belonging^1],# <-反転術式
             filter(lambda a:a[belonging]==node_id,self.sides)
@@ -105,11 +111,29 @@ class matchingGraph:
         self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
 
         self.marked_anode.append(start_node_id)# node_id と合わせる
-        self.__get_incr_roads__process(start_node_id,belonging=0)
+        self.__get_incr_roads__process(start_node_id,belonging=0,flag=True)
+
+        return self.incr_roads
+    def get_incr_roads2(self,start_node_id:int)->list[list[int]]:
+        """
+        左側にある、まだマッチしていないnodeのidを引数にとります
+        増加道かまたは変更可能なノード先を返却します
+
+        """
+        # 変数の初期化
+        self.incr_roads: list[list[int]] = []
+        self.incr_road: list[int] = []
+
+        self.marked_anode: list[int] = []  # 左側の頂点集合で使用されたもの
+        self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
+
+        self.marked_anode.append(start_node_id)# node_id と合わせる
+        self.__get_incr_roads__process(start_node_id,belonging=0) # flag false
 
         return self.incr_roads
 
-    def __get_incr_roads__process(self,node_id: int, belonging=0):
+
+    def __get_incr_roads__process(self,node_id: int, belonging=0,flag=False):
         """
         node引数はマッチしていないものでanodesに属するものを選ぶ必要がある
         返り値は増加道を表現したリスト
@@ -122,113 +146,64 @@ class matchingGraph:
         next_id=node_id
 
         if belonging %2 == 0:    #左側にいるとき
+            opposite=self.get_other_side(next_id, belonging=0)  # 進む先のノードの候補
+            opposite=filter(
+                lambda i: i not in road[0::2],
+                opposite
+            )# すでに通った左側ノードを除く
+            opposite = filter(
+                lambda j: (next_id, j) not in self.matching_set,
+                opposite
+            )
+            
             opposite = [k
-                for k in filter(
-                    lambda j: (next_id, j) not in self.matching_set,
-                    filter(
-                        lambda i: i not in road[0::2],# すでに通った左側ノードを除く
-                        self.get_other_side(
-                            next_id, belonging=0)  # 進む先のノードの候補
-                    )
-                )
+                for k in opposite 
                 if k not in self.marked_bnode
             ]
+            opposite = [k for k in opposite]
 
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_bnode = self.marked_bnode+opposite
                     self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=1) # 再帰部分
+                    self.__get_incr_roads__process(i,belonging=1,flag=True) # 再帰部分
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             else:  # もし進める道がない
-                print("進める道がない",road)
-        else:                   #右側にいるとき
-            opposite = [k
-                for k in filter(
-                    lambda j: (j, next_id) in self.matching_set,
-                    filter(
-                        lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
-                        self.get_other_side(
-                            next_id, belonging=1)  # 進む先のノードの候補
+                if flag:
+                    self.incr_roads.append(self.incr_road)
+                else:
+                    logging.debug(
+                        self.incr_road
                     )
-                )  # マッチングに含まれて**いる**もの
+        else:                   #右側にいるとき
+            opposite=self.get_other_side(
+                            next_id, belonging=1)  # 進む先のノードの候補
+            opposite=filter(
+                        lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
+                    opposite)
+            opposite= filter(
+                    lambda j: (j, next_id) in self.matching_set,
+                opposite)
+            opposite = [k
+                for k in opposite
                 if k not in self.marked_anode
-            ]
+                ] # マッチングに含まれて**いる**もの
+            opposite = [k for k in opposite]
+
 
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_anode = self.marked_anode+opposite
                     self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=0) # 再帰部分
+                    self.__get_incr_roads__process(i,belonging=0,flag=True) # 再帰部分
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
             else:  # 進める道がない場合
                 self.incr_roads.append(self.incr_road)
     
-    def get_max_matching_from_hash(self,hash_:int,max_length:int):
-        """
-        任意の整数から最大マッチングを返却する
-        max_length : 最大マッチングのリストの長さ
-        """
-        road:list[int] = copy.deepcopy(self.incr_road)
-        
-        marked_a_local = copy.deepcopy(self.marked_anode)
-        marked_b_local = copy.deepcopy(self.marked_bnode)
-
-        unmatch_node = self.find_unmatching_node(self.matching_set,belonging=0)
-        next_id=unmatch_node[0]
-        belonging = 0
-
-        if belonging %2 == 0:    #左側にいるとき
-            opposite = [k
-                for k in filter(
-                    lambda j: (next_id, j) not in self.matching_set,
-                    filter(
-                        lambda i: i not in road[0::2],# すでに通った左側ノードを除く
-                        self.get_other_side(
-                            next_id, belonging=0)  # 進む先のノードの候補
-                    )
-                )
-                if k not in self.marked_bnode
-            ]
-
-            if opposite:# 進める道がある場合
-                for i in opposite:
-                    self.marked_bnode = self.marked_bnode+opposite
-                    self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=1) # 再帰部分
-                    
-                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
-                    self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
-            else:  # もし進める道がない
-                print("進める道がない",road)
-        else:                   #右側にいるとき
-            opposite = [k
-                for k in filter(
-                    lambda j: (j, next_id) in self.matching_set,
-                    filter(
-                        lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
-                        self.get_other_side(
-                            next_id, belonging=1)  # 進む先のノードの候補
-                    )
-                )  # マッチングに含まれて**いる**もの
-                if k not in self.marked_anode
-            ]
-
-            if opposite:# 進める道がある場合
-                for i in opposite:
-                    self.marked_anode = self.marked_anode+opposite
-                    self.incr_road.append(i)
-                    self.__get_incr_roads__process(i,belonging=0) # 再帰部分
-                    
-                    self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
-                    self.marked_bnode = copy.deepcopy(marked_b_local) # ここのdeepcopy必要かどうか怪しい
-            else:  # 進める道がない場合
-                self.incr_roads.append(self.incr_road)
-
 
     def incr_sides_iter(self,start_node_id:int,incr_list:list[int])->list[tuple[int,int]]:
         """
@@ -458,7 +433,7 @@ def __test0_function():
 
 
 
-backnum="0"
+backnum=""
 # テスト用データ
 with open(os.path.join("data",f"works{backnum}.json"),encoding="utf-8")as f:
     works = json.load(f)
@@ -486,7 +461,7 @@ if __name__=="__main__":
     
     mgraph.max_matching2()
     
-
+    print(mgraph.get_incr_roads(8))
     # print(
     #     mgraph.find_all_max_matching()
     # )
