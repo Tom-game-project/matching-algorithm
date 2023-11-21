@@ -23,15 +23,14 @@ for (const i of staff_nodes){
 }
 
 let max_match = mgraph.maxMatching();
-console.log(
-    "マックスマッチング",
-    max_match
-);
+let max_length = max_match.length;
 
 let all_match = [];
 for (const i of mgraph.maxMatching2()){
     //console.log("マッチング",i);
-    all_match.push(i);
+    if (i.length===max_length){
+        all_match.push(i);
+    }
 }
 
 //頂点の設定
@@ -41,7 +40,7 @@ let nodeList = [...Array(staff.length).keys()]
             id : i,
             label : staff[i].name,
             x : 100,
-            y : i*120,
+            y : i*240,
             shape: "box",
             color: "#f9a8ff"
         }
@@ -50,8 +49,8 @@ let nodeList = [...Array(staff.length).keys()]
         return {
             id : i+staff.length,
             label : works[i],
-            x : 1000,
-            y : i*120
+            x : 500,
+            y : i*240
         }
     })
     );
@@ -68,7 +67,7 @@ for (let i=0; i< staff.length;i++){
         };
         if (max_match.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
             edge["color"]={ color: "#ff0000"} ;
-            edge["width"]="5";
+            edge["width"]="20";
         }else{
             edge["color"]={ color: "#c2c2c2"} ;
             edge["width"]="3";
@@ -130,7 +129,7 @@ function onClickNextBtn(head){
             if (matching.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
                 //マッチングに含まれている
                 edge["color"]={ color: "#ff0000"} ;
-                edge["width"]="5";
+                edge["width"]="20";
             }else{
                 //マッチングに含まれていない
                 edge["color"]={ color: "#c2c2c2"} ;
