@@ -70,7 +70,7 @@ for (let i=0; i< staff.length;i++){
             edge["color"]={ color: "#ff0000"} ;
             edge["width"]="5";
         }else{
-            edge["color"]={ color: "#0000ff"} ;
+            edge["color"]={ color: "#c2c2c2"} ;
             edge["width"]="3";
         }
         edgeList.push(edge);
@@ -110,12 +110,15 @@ function mod(n,m){
 
 //--------------event--------------
 let counter = 0
+let ctrElem = document.getElementById("ctr");
+ctrElem.textContent = counter;
 function onClickNextBtn(head){
     counter+=head;
     
     let matching = all_match[mod(counter,all_match.length)];
     //ひな形
 
+    ctrElem.textContent=mod(counter,all_match.length);
     let k=0;
     for (let i=0; i< staff.length;i++){
         for (const j of staff[i].capable){
@@ -130,7 +133,7 @@ function onClickNextBtn(head){
                 edge["width"]="5";
             }else{
                 //マッチングに含まれていない
-                edge["color"]={ color: "#0000ff"} ;
+                edge["color"]={ color: "#c2c2c2"} ;
                 edge["width"]="3";
             }
             edges.update(edge)
