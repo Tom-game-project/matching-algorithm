@@ -1,4 +1,3 @@
-
 import {node,matchingGraph} from "./js/matching.js";//マッチングライブラリ
 
 //人間関係グラフ
@@ -31,7 +30,7 @@ console.log(
 
 let all_match = [];
 for (const i of mgraph.maxMatching2()){
-    console.log("マッチング",i);
+    //console.log("マッチング",i);
     all_match.push(i);
 }
 
@@ -58,19 +57,24 @@ let nodeList = [...Array(staff.length).keys()]
     );
 
 //辺の設定
+let k = 0;
 let edgeList = [];
 for (let i=0; i< staff.length;i++){
     for (const j of staff[i].capable){
         let edge={
+            id:k,
             from:i,
             to:staff.length+works.indexOf(j)
         };
         if (max_match.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
             edge["color"]={ color: "#ff0000"} ;
+            edge["width"]="5";
         }else{
             edge["color"]={ color: "#0000ff"} ;
+            edge["width"]="3";
         }
         edgeList.push(edge);
+        k+=1;
     }
 }
 
@@ -91,3 +95,47 @@ let options = {
     },
 };
 let network = new vis.Network(container, data, options);
+
+let nextBtn = document.getElementById("nextbtn");
+let backBtn = document.getElementById("backbtn");
+
+
+nextBtn.addEventListener("click",()=>{onClickNextBtn(1)});
+backBtn.addEventListener("click",()=>{onClickNextBtn(-1)});
+
+function mod(n,m){
+    //剰余の出し方をpythonと同じにする
+    return  ((n % m) + m) % m;
+}
+
+//--------------event--------------
+let counter = 0
+function onClickNextBtn(head){
+    counter+=head;
+    
+    let matching = all_match[mod(counter,all_match.length)];
+    //ひな形
+
+    let k=0;
+    for (let i=0; i< staff.length;i++){
+        for (const j of staff[i].capable){
+            let edge={
+                id:k,
+                from:i,
+                to:staff.length+works.indexOf(j)
+            };
+            if (matching.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
+                //マッチングに含まれている
+                edge["color"]={ color: "#ff0000"} ;
+                edge["width"]="5";
+            }else{
+                //マッチングに含まれていない
+                edge["color"]={ color: "#0000ff"} ;
+                edge["width"]="3";
+            }
+            edges.update(edge)
+            k+=1;
+        }
+    }
+
+}
