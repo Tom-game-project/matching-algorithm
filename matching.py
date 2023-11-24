@@ -221,7 +221,7 @@ class matchingGraph:
             for i, j in enumerate(incr_road_map[:-1])
         ]
     
-    def new_matching_set_creater(
+    def new_matching_set_creator(
             self,
             matching           :list[tuple[int,int]],   # 変更前のマッチング集合
             remove_matching_set:list[tuple[int,int]],   # rm
@@ -258,7 +258,7 @@ class matchingGraph:
                 incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
                 remove_matching_set=incr_rord[1::2]
                 add_matching_set=incr_rord[0::2]
-                self.matching_set = self.new_matching_set_creater(
+                self.matching_set = self.new_matching_set_creator(
                     self.matching_set,
                     remove_matching_set,
                     add_matching_set
@@ -283,7 +283,7 @@ class matchingGraph:
                 incr_road = self.incr_sides_iter(i,inc)
                 remove_matching_set = incr_road[1::2]
                 add_matching_set = incr_road[0::2]
-                changedmatching = self.new_matching_set_creater(
+                changedmatching = self.new_matching_set_creator(
                     self.matching_set,
                     remove_matching_set,
                     add_matching_set
@@ -321,7 +321,7 @@ class matchingGraph:
                 incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
                 remove_matching_set=incr_rord[1::2]
                 add_matching_set=incr_rord[0::2]
-                self.matching_set = self.new_matching_set_creater(
+                self.matching_set = self.new_matching_set_creator(
                     self.matching_set,
                     remove_matching_set,
                     add_matching_set
@@ -379,7 +379,7 @@ class matchingGraph:
                 print("New Matching")
                 print(
                     "->",
-                    self.new_matching_set_creater(
+                    self.new_matching_set_creator(
                         self.matching_set,
                         remove_matching_set,
                         add_matching_set
@@ -417,7 +417,7 @@ def __test0_function():
         print("New Matching")
         print(
             "->",
-            mgraph.new_matching_set_creater(
+            mgraph.new_matching_set_creator(
                 mgraph.matching_set,
                 remove_matching_set,
                 add_matching_set
