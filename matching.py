@@ -51,7 +51,7 @@ class matchingGraph:
     # 相手となりうるnodeのiterを返却します
     def get_other_side(self,node_id :int ,belonging=0) -> Generator[int,None,None]:
         """
-        対岸で且つ進んでいけるノード
+        対岸のノード
         """
         return map(
             lambda b:b[belonging^1],# <-反転術式
