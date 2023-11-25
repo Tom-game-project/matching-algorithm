@@ -115,6 +115,7 @@ class matchingGraph:
         self.__get_incr_roads__process(start_node_id,belonging=0,flag=True)
 
         return self.incr_roads
+
     def get_incr_roads2(self,start_node_id:int)->list[list[int]]:
         """
         左側にある、まだマッチしていないnodeのidを引数にとります
@@ -129,7 +130,7 @@ class matchingGraph:
         self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
 
         self.marked_anode.append(start_node_id)# node_id と合わせる
-        self.__get_incr_roads__process(start_node_id,belonging=0) # flag false
+        self.__get_incr_roads__process(start_node_id,belonging=0,flag=False) # flag false
 
         return self.incr_roads
 
@@ -145,9 +146,15 @@ class matchingGraph:
         marked_b_local = copy.deepcopy(self.marked_bnode)
 
         next_id=node_id
-
         if belonging %2 == 0:    #左側にいるとき
             opposite=self.get_other_side(next_id, belonging=0)  # 進む先のノードの候補
+            
+            opposite = list(opposite)
+            logging.debug("id")
+            logging.debug(next_id)
+            logging.debug("対岸")
+            logging.debug(opposite)
+            
             opposite=filter(
                 lambda i: i not in road[0::2],
                 opposite
@@ -162,7 +169,8 @@ class matchingGraph:
                 if k not in self.marked_bnode
             ]
             opposite = [k for k in opposite]
-
+            logging.debug(opposite)
+            
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_bnode = self.marked_bnode+opposite
@@ -180,7 +188,9 @@ class matchingGraph:
                     )
         else:                   #右側にいるとき
             opposite=self.get_other_side(
-                            next_id, belonging=1)  # 進む先のノードの候補
+                            next_id, belonging=1)  # 進む先のノードの候補 
+            logging.debug("対岸")
+            logging.debug(opposite:=list(opposite))
             opposite=filter(
                         lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
                     opposite)
@@ -192,7 +202,7 @@ class matchingGraph:
                 if k not in self.marked_anode
                 ] # マッチングに含まれて**いる**もの
             opposite = [k for k in opposite]
-
+            logging.debug(opposite)
 
             if opposite:# 進める道がある場合
                 for i in opposite:
@@ -247,8 +257,8 @@ class matchingGraph:
             unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
             if len(unmatching_list)==0:
                 return self.matching_set
-            else:
-                incriment = [i 
+            
+            incriment = [i 
                     for i in self.get_incr_roads(unmatching_list[0])
                         if len(i) > 2
                 ] # 増加道のみを受け入れる
@@ -426,7 +436,7 @@ def __test0_function():
 
 
 
-backnum=""
+backnum="0"
 # テスト用データ
 with open(os.path.join("data",f"works{backnum}.json"),encoding="utf-8")as f:
     works = json.load(f)
@@ -451,13 +461,13 @@ if __name__=="__main__":
         for j in i.data["capable"]:
             mgraph.add_side(i.id, works.index(j))
     
-
+    logging.debug(mgraph.sides)
     logging.debug("最大マッチング")
     logging.debug(
         mgraph.max_matching()
     )
     
-    for i in mgraph.max_matching2():print("マッチング",i)
+    #for i in mgraph.max_matching2():print("マッチング",i)
     
     
     # print(
