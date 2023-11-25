@@ -110,7 +110,8 @@ class matchingGraph:
 
         self.marked_anode: list[int] = []  # 左側の頂点集合で使用されたもの
         self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
-
+        logging.debug("スタートノード")
+        logging.debug(start_node_id)
         self.marked_anode.append(start_node_id)# node_id と合わせる
         self.__get_incr_roads__process(start_node_id,belonging=0,flag=True)
 
@@ -146,15 +147,11 @@ class matchingGraph:
         marked_b_local = copy.deepcopy(self.marked_bnode)
 
         next_id=node_id
+        logging.debug("id")
+        logging.debug(next_id)
         if belonging %2 == 0:    #左側にいるとき
             opposite=self.get_other_side(next_id, belonging=0)  # 進む先のノードの候補
-            
             opposite = list(opposite)
-            logging.debug("id")
-            logging.debug(next_id)
-            logging.debug("対岸")
-            logging.debug(opposite)
-            
             opposite=filter(
                 lambda i: i not in road[0::2],
                 opposite
@@ -163,12 +160,12 @@ class matchingGraph:
                 lambda j: (next_id, j) not in self.matching_set,
                 opposite
             )
-            
             opposite = [k
                 for k in opposite 
                 if k not in self.marked_bnode
             ]
             opposite = [k for k in opposite]
+            logging.debug("左側から見た右ノード")
             logging.debug(opposite)
             
             if opposite:# 進める道がある場合
@@ -179,18 +176,15 @@ class matchingGraph:
                     
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
-            else:  # もし進める道がない
-                if flag:
-                    self.incr_roads.append(self.incr_road)
-                else:
-                    logging.debug(
-                        self.incr_road
-                    )
+            elif flag:
+                self.incr_roads.append(self.incr_road)
+            else:
+                logging.debug(
+                    self.incr_road
+                )
         else:                   #右側にいるとき
             opposite=self.get_other_side(
                             next_id, belonging=1)  # 進む先のノードの候補 
-            logging.debug("対岸")
-            logging.debug(opposite:=list(opposite))
             opposite=filter(
                         lambda i: i not in road[1::2],  # すでに通った右側ノードを除く
                     opposite)
@@ -202,8 +196,9 @@ class matchingGraph:
                 if k not in self.marked_anode
                 ] # マッチングに含まれて**いる**もの
             opposite = [k for k in opposite]
+            logging.debug("右から見た左ノード")
             logging.debug(opposite)
-
+            
             if opposite:# 進める道がある場合
                 for i in opposite:
                     self.marked_anode = self.marked_anode+opposite
@@ -262,6 +257,8 @@ class matchingGraph:
                     for i in self.get_incr_roads(unmatching_list[0])
                         if len(i) > 2
                 ] # 増加道のみを受け入れる
+            
+            print("incr",incriment)
             if len(incriment)==0:
                 return self.matching_set
             else:
