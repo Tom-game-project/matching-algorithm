@@ -1,15 +1,30 @@
 # Matching Algorithm
 
-様々な用途に応用可能なアルゴリズム
+以下の言語で実装してあります
 
-- 仕事の振り分け(shift表)
+- Javascript
+
+- Python
+
+- Rust
+
+マッチングアルゴリズムは様々な用途に応用可能なアルゴリズムです
+
+- 仕事の振り分け
 
 - マッチングアプリ
 
 - 最適組み合わせ
+etc..
 
-## javascript版の使い方
+## Javascript版の使い方
+
+js folderを任意の場所に置きます`from`以降はディレクトリの配置に合わせて変更してください
 
 ```js
 import {node,matchingGraph} from "./js/script.js";//マッチングライブラリ
 ```
+
+## Python版の使い方
+
+## Rust版の使い方
