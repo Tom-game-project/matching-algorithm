@@ -253,16 +253,16 @@ class matchingGraph:
             if len(unmatching_list)==0:
                 return self.matching_set
             
-            incriment = [i 
+            increment = [i 
                     for i in self.get_incr_roads(unmatching_list[0])
                         if len(i) > 2
                 ] # 増加道のみを受け入れる
             
-            print("incr",incriment)
-            if len(incriment)==0:
+            print("incr",increment)
+            if len(increment)==0:
                 return self.matching_set
             else:
-                incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
+                incr_rord=self.incr_sides_iter(unmatching_list[0],increment[0])
                 remove_matching_set=incr_rord[1::2]
                 add_matching_set=incr_rord[0::2]
                 self.matching_set = self.new_matching_set_creator(
@@ -281,12 +281,12 @@ class matchingGraph:
         unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0)
         for i in unmatching_list:
             logging.debug("アンマッチ",i)
-            incrment = [
+            increment = [
                 j for j in self.get_incr_roads(i)
                 if len(j)>1
             ]
-            logging.debug(f"増加道 {incrment}")
-            for inc in incrment:
+            logging.debug(f"増加道 {increment}")
+            for inc in increment:
                 incr_road = self.incr_sides_iter(i,inc)
                 remove_matching_set = incr_road[1::2]
                 add_matching_set = incr_road[0::2]
