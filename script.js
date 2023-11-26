@@ -1,37 +1,45 @@
-import {node,matchingGraph} from "./js/matching.js";//マッチングライブラリ
+import init,{MatchingGraph} from "./matching/pkg/matching.js";
 
 //人間関係グラフ
 // create an array with nodes
 import staff from "./data/staff.json" assert { type: "json" };
 import works from "./data/works.json" assert {type:"json"};
 
-const staff_nodes = [...Array(staff.length)].map((i,j)=>new node(j,staff[j]));
-const works_nodes = [...Array(works.length)].map((i,j)=>new node(j,works[j]));
+init().then(
+    ()=>{
+        const staff_nodes = [...Array(staff.length).keys()].map((i)=>i);
+        const works_nodes = [...Array(works.length).keys()].map((i)=>i);
 
-let mgraph = new matchingGraph(staff_nodes,works_nodes);//インスタンス化
+        let mgraph = new MatchingGraph(staff_nodes,works_nodes);//インスタンス化
+        
+        //辺の追加
+        for (let index=0;index<staff.length;index++){
+            for (const work of staff[index].capable){
+                mgraph.addSide(
+                    index,
+                    works.indexOf(work)
+                )
+            }
+        }
 
-//辺の追加
+        
 
-for (const i of staff_nodes){
-    for (const j of i.data.capable){
-        // jは役職の名前　例:A,B (..etc)
-        mgraph.addSide(
-            i.id,
-            works.indexOf(j)
-        );
-    }
-}
+        console.log(
+            JSON.parse(
+                mgraph.maxMatching()
+            )
+        )
+        let maxMatch = JSON.parse(mgraph.maxMatching());
+        let maxMatchingLength = maxMatch.length;
+        
+        let all_match = [];//マッチングした辺を入力するようの配列
+        for (const i of JSON.parse(mgraph.maxMatching2())){
+            //console.log("マッチング",i);
+            if (i.length===maxMatchingLength){
+                all_match.push(i);
+            }
+        }
 
-let max_match = mgraph.maxMatching();
-let max_length = max_match.length;
-
-let all_match = [];
-for (const i of mgraph.maxMatching2()){
-    //console.log("マッチング",i);
-    if (i.length===max_length){
-        all_match.push(i);
-    }
-}
 
 //頂点の設定
 let nodeList = [...Array(staff.length).keys()]
@@ -65,7 +73,7 @@ for (let i=0; i< staff.length;i++){
             from:i,
             to:staff.length+works.indexOf(j)
         };
-        if (max_match.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
+        if (maxMatch.some(k=>k[0]==i&&k[1]==works.indexOf(j))){//最大マッチングのリストに含まれているかどうか
             edge["color"]={ color: "#ff0000"} ;
             edge["width"]="20";
         }else{
@@ -141,3 +149,7 @@ function onClickNextBtn(head){
     }
 
 }
+
+    }
+);
+
