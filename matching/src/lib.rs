@@ -101,18 +101,18 @@ impl MatchingGraph{
                 .iter()
                 .map(|&(_,i)|i).
                 collect();
-            return self.bnodes.iter()
+            self.bnodes.iter()
             .map(|&i|i)
-            .filter(|&i| !matching_list.contains(&i)).collect();
+            .filter(|&i| !matching_list.contains(&i)).collect()
         }else{
             //左側
             let matching_list :Vec<usize>= matching
                 .iter()
-                .map(|&(_,i)|i).
+                .map(|&(i,_)|i).
                 collect();
-            return self.anodes.iter()
+            self.anodes.iter()
             .map(|&i|i)
-            .filter(|&i| !matching_list.contains(&i)).collect();
+            .filter(|&i| !matching_list.contains(&i)).collect()
         }
     }
 
