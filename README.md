@@ -1,5 +1,7 @@
 # Matching Algorithm
 
+これ以前の実装にはmax_matchingが無限ループに発生するバグがあったので修正
+
 以下の言語で実装してあります
 
 - Javascript

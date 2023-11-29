@@ -15,6 +15,7 @@ import logging
 import time
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.disable(logging.DEBUG)
 
 class node:
     """
@@ -177,7 +178,8 @@ class matchingGraph:
                     self.incr_road = copy.deepcopy(road) # ここのdeepcopy必要かどうか怪しい
                     self.marked_anode = copy.deepcopy(marked_a_local) # ここのdeepcopy必要かどうか怪しい
             elif flag:
-                self.incr_roads.append(self.incr_road)
+                #self.incr_roads.append(self.incr_road)
+                pass
             else:
                 logging.debug(
                     self.incr_road
@@ -335,142 +337,46 @@ class matchingGraph:
                 )
 
 
-    def test_max_matching(self):
-        """
-        最大マッチングを見つける関数作成のためのテスト
-        """
-
-        # ここでself.matching_setが初期化される
-        self.init_matching()
-
-        # 左側ノードの全てのアンマッチノードを探す
-        unmatch_list=self.find_unmatching_node(self.matching_set,belonging=0)
-        print("左側でマッチしていないノード",unmatch_list)
-        
-        # 増加道を探す
-        matching = self.matching_set
-        print("増加道を探す",matching)
-
-        incriment = [i 
-            for i in self.get_incr_roads(2)
-                if len(i) > 2
-        ] # 増加道のみを受け入れる
-        print("見つかった増加道",incriment)
-
-        print("Base Matching".center(30,"="))
-        for i in self.matching_set:
-            print(i)
-
-        print("Incr Road".center(30,"="))
-        for i in unmatch_list:
-            # 以下実験ではnodeid 4をスタートにして実験
-            incriment = [j
-                for j in self.get_incr_roads(i)
-                    if len(j) > 2
-            ] # 増加道のみを受け入れる
-            for j in incriment:
-                # iは増加道
-                incr_rord=self.incr_sides_iter(i,j)
-                
-                print("rm")
-                print(
-                    "-",
-                    remove_matching_set:=incr_rord[1::2]
-                )
-                print("add")
-                print(
-                    "+",
-                    add_matching_set:=incr_rord[0::2]
-                )
-
-                print("New Matching")
-                print(
-                    "->",
-                    self.new_matching_set_creator(
-                        self.matching_set,
-                        remove_matching_set,
-                        add_matching_set
-                    ), "\n"
-                )
-
-
 def __test0_function():
     """
-    test0 function 
-    テスト用関数
+    # __test0_function 
+    全てのデータに対してテストを行う関数
     """
-    mgraph.matching_set = [(0, 1), (1, 4), (3,3)]
-    
-    print("Base Matching".center(30,"="))
-    for i in mgraph.matching_set:
-        print(i)
-    print("incr road".center(30,"="))
-    # 以下実験ではnodeid 4をスタートにして実験
-    for i in mgraph.get_incr_roads(4):
-        # iは増加道
-        incr_rord=mgraph.incr_sides_iter(4,i)
+    dirs = ["00","01","02","03"]
+    for dir_path in dirs:
+        with open(os.path.join("data",dir_path,"works.json"),encoding="utf-8")as f:
+            works = json.load(f)
+            #pprint(works)
+        with open(os.path.join("data",dir_path,"staff.json"),encoding="utf-8")as f:
+            staff_ability = json.load(f)
+            #pprint(staff_ability)
+
+        # 初期設定
+        staff_nodes = [node(i,j) for i,j in enumerate(staff_ability)]
+        works_nodes = [node(i,j) for i,j in enumerate(works)]
+        # グラフの初期化
+        mgraph = matchingGraph(
+            staff_nodes,
+            works_nodes
+        )
+        # 辺の追加
+        for i in staff_nodes:
+            for j in i.data["capable"]:
+                mgraph.add_side(i.id, works.index(j))
+        # 初期設定ここまで
         
-        print("rm")
-        print(
-            "-",
-            remove_matching_set:=incr_rord[1::2]
-        )
-        print("add")
-        print(
-            "+",
-            add_matching_set:=incr_rord[0::2]
-        )
-
-        print("New Matching")
-        print(
-            "->",
-            mgraph.new_matching_set_creator(
-                mgraph.matching_set,
-                remove_matching_set,
-                add_matching_set
-            ), "\n"
-        )
+        print(" データ {} ".format(dir_path).center(50,"-"))
+        print("max matching",mgraph.max_matching())
+        for i,j in enumerate(mgraph.max_matching2()):
+            print(i,j)
+        print("")
 
 
-
-backnum="0"
-# テスト用データ
-with open(os.path.join("data",f"works{backnum}.json"),encoding="utf-8")as f:
-    works = json.load(f)
-    #pprint(works)
-with open(os.path.join("data",f"staff{backnum}.json"),encoding="utf-8")as f:
-    staff_ability = json.load(f)
-    #pprint(staff_ability)
 
 if __name__=="__main__":
 
     start=time.perf_counter()
-    # nodeの設定
-    staff_nodes = [node(i,j) for i,j in enumerate(staff_ability)]
-    works_nodes = [node(i,j) for i,j in enumerate(works)]
-    # グラフの初期化
-    mgraph = matchingGraph(
-        staff_nodes,
-        works_nodes
-    )
-    # 辺の追加
-    for i in staff_nodes:
-        for j in i.data["capable"]:
-            mgraph.add_side(i.id, works.index(j))
-    
-    logging.debug(mgraph.sides)
-    logging.debug("最大マッチング")
-    logging.debug(
-        mgraph.max_matching()
-    )
-    
-    #for i in mgraph.max_matching2():print("マッチング",i)
-    
-    
-    # print(
-    #     mgraph.find_all_max_matching()
-    # )
-
+    __test0_function()
     end = time.perf_counter()
 
     print("パフォーマンス",(end-start)*1000,"ms")
