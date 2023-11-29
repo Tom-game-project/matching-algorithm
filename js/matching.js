@@ -238,13 +238,13 @@ export class matchingGraph{
                 }
             }else{
                 //もし進める道がない場合
-                if (flag){
-                    this.incr_roads.push(this.incr_road);
-                }else{
-                    console.log(
-                        this.incr_road
-                    )
-                }
+                //if (flag){
+                //    //this.incr_roads.push(this.incr_road);
+                //}else{
+                //    console.log(
+                //        this.incr_road
+                //    )
+                //}
             }
         }else{                 //右側にいるとき
             //ここに挿入
@@ -324,9 +324,6 @@ export class matchingGraph{
      */
     maxMatching(){
         this.initMatching();
-        console.log(
-            this.matching_set                          //後で取り除く
-        );
         while (true){
             let unmatching_list = this.findUnMatchingNode(this.matching_set,0);
             if (unmatching_list.length===0){
