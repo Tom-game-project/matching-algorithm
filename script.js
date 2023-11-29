@@ -175,6 +175,23 @@ changeEdgesColor(
     mgraph.maxMatching()
 );
 
+//--------02
+mgraph = initGraph(
+    staff02,
+    works02
+);
+[edges,nodes,network] = initNetwork(
+    staff02,
+    works02
+);
+
+changeEdgesColor(
+    staff02,
+    works02,
+    mgraph.maxMatching()
+);
+
+
 let nextBtn = document.getElementById("nextbtn");
 let backBtn = document.getElementById("backbtn");
 
