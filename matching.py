@@ -17,20 +17,20 @@ import time
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.disable(logging.DEBUG)
 
-class node:
-    """
-    頂点(ノード)
-    """
-    def __init__(self,id_:int,data):
-        self.id = id_
-        self.data=data
+#class node:
+#    """
+#    頂点(ノード)
+#    """
+#    def __init__(self,id_:int,data):
+#        self.id = id_
+#        self.data=data
 
 
 class matchingGraph:
 
-    def __init__(self,anodes:list[node],bnodes:list[node]):
-        self.anodes:list[node] = anodes # 0 頂点集合左
-        self.bnodes:list[node] = bnodes # 1 頂点集合右
+    def __init__(self,anodes:list[int],bnodes:list[int]):
+        self.anodes:list[int] = anodes # 0 頂点集合左
+        self.bnodes:list[int] = bnodes # 1 頂点集合右
 
         self.sides:list[tuple[int,int]] = [] # 辺
 
@@ -68,9 +68,9 @@ class matchingGraph:
         """
         self.matching_set=[]
         for i in self.anodes:
-            for j in self.get_other_side(i.id,belonging=0):
+            for j in self.get_other_side(i,belonging=0):
                 if all(map(lambda a:a[1]!=j ,self.matching_set )):
-                    self.matching_set.append((i.id,j))
+                    self.matching_set.append((i,j))
                     break
 
     def find_unmatching_node(self, matching: list[tuple[int, int]], belonging=0) -> list[int]:
@@ -81,9 +81,9 @@ class matchingGraph:
         matching_list = [i[belonging] for i in matching]
         target_nodes = self.anodes if belonging == 0 else self.bnodes
         return [
-            i.id
+            i
             for i in target_nodes
-            if i.id not in matching_list
+            if i not in matching_list
         ]
 
     def find_matching_node(self, matching: list[(int, int)], belonging=0) -> int:
@@ -94,9 +94,9 @@ class matchingGraph:
         matching_list = [i[belonging] for i in matching]
         target_nodes = self.anodes if belonging == 0 else self.bnodes
         return (
-            i.id
+            i
             for i in target_nodes
-                if i.id in matching_list
+                if i in matching_list
         )
 
     def get_incr_roads(self,start_node_id:int)->list[list[int]]:
@@ -352,17 +352,17 @@ def __test0_function():
             #pprint(staff_ability)
 
         # 初期設定
-        staff_nodes = [node(i,j) for i,j in enumerate(staff_ability)]
-        works_nodes = [node(i,j) for i,j in enumerate(works)]
+        staff_nodes = [i for i,j in enumerate(staff_ability)]
+        works_nodes = [i for i,j in enumerate(works)]
         # グラフの初期化
         mgraph = matchingGraph(
             staff_nodes,
             works_nodes
         )
         # 辺の追加
-        for i in staff_nodes:
-            for j in i.data["capable"]:
-                mgraph.add_side(i.id, works.index(j))
+        for i,j in enumerate(staff_ability):
+            for k in j["capable"]:
+                mgraph.add_side(i, works.index(k))
         # 初期設定ここまで
         
         print(" データ {} ".format(dir_path).center(50,"-"))
