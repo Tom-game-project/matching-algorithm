@@ -5,7 +5,7 @@
 # max_matching関数はマッチングが最大になるようにしている
 
 from typing import Generator
-import copy #再帰に処理時の配列保存よう
+import copy #再帰に処理時の配列保存
 
 import os
 import json
@@ -17,29 +17,17 @@ import time
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.disable(logging.DEBUG)
 
-#class node:
-#    """
-#    頂点(ノード)
-#    """
-#    def __init__(self,id_:int,data):
-#        self.id = id_
-#        self.data=data
-
 
 class matchingGraph:
 
     def __init__(self,anodes:list[int],bnodes:list[int]):
         self.anodes:list[int] = anodes # 0 頂点集合左
         self.bnodes:list[int] = bnodes # 1 頂点集合右
-
         self.sides:list[tuple[int,int]] = [] # 辺
-
         self.matching_set:list[tuple[int,int]]=[] # マッチング集合
-
         # 以下は増加道を発見する際に使います
         self.incr_roads:list[list[int]]=[]
         self.incr_road:list[int]=[]
-
         self.marked_anode:list[int] = [] # 左側の頂点集合で使用されたもの
         self.marked_bnode:list[int] = [] # 右側の頂点集合で使用されたもの
 
@@ -103,39 +91,31 @@ class matchingGraph:
         """
         左側にある、まだマッチしていないnodeのidを引数にとります
         増加道かまたは変更可能なノード先を返却します
-
         """
         # 変数の初期化
         self.incr_roads: list[list[int]] = []
         self.incr_road: list[int] = []
-
         self.marked_anode: list[int] = []  # 左側の頂点集合で使用されたもの
         self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
         logging.debug("スタートノード")
         logging.debug(start_node_id)
         self.marked_anode.append(start_node_id)# node_id と合わせる
         self.__get_incr_roads__process(start_node_id,belonging=0,flag=True)
-
         return self.incr_roads
 
     def get_incr_roads2(self,start_node_id:int)->list[list[int]]:
         """
         左側にある、まだマッチしていないnodeのidを引数にとります
         増加道かまたは変更可能なノード先を返却します
-
         """
         # 変数の初期化
         self.incr_roads: list[list[int]] = []
         self.incr_road: list[int] = []
-
         self.marked_anode: list[int] = []  # 左側の頂点集合で使用されたもの
         self.marked_bnode: list[int] = []  # 右側の頂点集合で使用されたもの
-
         self.marked_anode.append(start_node_id)# node_id と合わせる
         self.__get_incr_roads__process(start_node_id,belonging=0,flag=False) # flag false
-
         return self.incr_roads
-
 
     def __get_incr_roads__process(self,node_id: int, belonging=0,flag=False):
         """
@@ -143,10 +123,8 @@ class matchingGraph:
         返り値は増加道を表現したリスト
         """
         road:list[int] = copy.deepcopy(self.incr_road)
-        
         marked_a_local = copy.deepcopy(self.marked_anode)
         marked_b_local = copy.deepcopy(self.marked_bnode)
-
         next_id=node_id
         logging.debug("id")
         logging.debug(next_id)
@@ -212,7 +190,6 @@ class matchingGraph:
             else:  # 進める道がない場合
                 self.incr_roads.append(self.incr_road)
     
-
     def incr_sides_iter(self,start_node_id:int,incr_list:list[int])->list[tuple[int,int]]:
         """
         引数には増加道のみを含むリスト
@@ -260,7 +237,6 @@ class matchingGraph:
                         if len(i) > 2
                 ] # 増加道のみを受け入れる
             
-            print("incr",increment)
             if len(increment)==0:
                 return self.matching_set
             else:
@@ -299,42 +275,69 @@ class matchingGraph:
                 )
                 yield changedmatching
 
-
-    def find_all_max_matching(self):# 工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中工事中
+    def exchangeable(self,leftnode0,leftnode1)->bool:   #工事中工事中工事中工事中
         """
-        全ての最大マッチングを返却する
-        同じ条件に対して出力の順番は常に同じである
+        すでに、self.matching_setが最大マッチングになっている必要がある。
+        左側のノードを二つ選んで入れ替えを行う
+        もし、入れ替えが不可能であればerrorを返却する
         """
-        # 考慮すべき事項
-        # 増加道を見つけたからと言って最大マッチングを見つけたとは限らない
-        # 最大マッチングを見つけるまで増加道を見つけなければならない
-        # あるアンマッチノードをすべて探しても最大マッチングに到達しないのであれば
-        # そのノードを含んだ増加道を見つけることはできないので終了
+        #マッチできるリスト
+        capable0:list[int] = list(map(lambda a:a[1],filter(lambda a:a[0]==leftnode0,self.sides)))
+        capable1:list[int] =  list(map(lambda a:a[1],filter(lambda a:a[0]==leftnode1,self.sides)))
+        #現在のマッチ 0 <= len(array) <= 1　を満たすことが期待される
+        #すなわちマッチしていないかマッチしているかのどちらか一方の状態をとっているはずだと期待できる
+        match0:list[int] = list(map(lambda b:b[1] ,filter(lambda a:a[0]==leftnode0,self.matching_set)))
+        match1:list[int] = list(map(lambda b:b[1] ,filter(lambda a:a[0]==leftnode1,self.matching_set)))
+        match len(match0):
+            case 0:
+                work0 = None
+            case 1:
+                work0 = match0[0]
+            case _:
+                raise BaseException("exchange methodを呼び出す前に、max_matching methodが呼び出されているかを確かめてください")
+        match len(match1):
+            case 0:
+                work1 = None
+            case 1:
+                work1 = match1[0]
+            case _:
+                raise BaseException("exchange methodを呼び出す前に、max_matching methodが呼び出されているかを確かめてください")
+        #仕事の交換ができるかを確かめます        
+        #left0Bool
+        #leftnode0がleftnode1の仕事を引き受けられるか
+        l0b:bool = (work1 in capable0)\
+                or (work1 is None)
+        #left1Bool
+        #leftnode1がleftnode2の仕事を引き受けられるか
+        l1b:bool = (work0 in capable1)\
+                or (work1 is None)
+        print(
+            "leftnode0がleftnode1の仕事を引き受けられるか",
+            l0b,
+            "leftnode1がleftnode2の仕事を引き受けられるか",
+            l1b,
+            sep="\n"
+        )
+        if l0b and l1b:#入れ替え可能
+            return True
+        else:
+            return False
 
-        maxmatchlen = len(self.max_matching())# 最大マッチングのリストの長さ
+    def exchange(self,leftnode0,leftnode1):
+        if self.exchangeable(leftnode0,leftnode1):
+            # ここでself.matching_setを変更する
+            pass
+        else:
+            raise BaseException("交換不可能なノードです")
 
-        self.init_matching() # マッチングを初期化する
-        while True: # 終了の保証が出来ない
-            unmatching_list = self.find_unmatching_node(self.matching_set,belonging=0) # 左側ノードの全てのアンマッチノードを返却する
-            if len(unmatching_list)==0:
-                return self.matching_set
-            else:
-                incriment = [i 
-                    for i in self.get_incr_roads(unmatching_list[0])
-                        if len(i) > 2
-                ] # 増加道のみを受け入れる
-            
-            if len(incriment)==0:
-                return self.matching_set
-            else:
-                incr_rord=self.incr_sides_iter(unmatching_list[0],incriment[0])
-                remove_matching_set=incr_rord[1::2]
-                add_matching_set=incr_rord[0::2]
-                self.matching_set = self.new_matching_set_creator(
-                    self.matching_set,
-                    remove_matching_set,
-                    add_matching_set
-                )
+    def fixed(self,leftnode):    ##工事中工事中工事中工事中
+        """
+        すでに、self.matching_setが最大マッチングになっている必要がある。
+        左側のノードを基準として、新しいマッチングを決定したい場合
+        固定したマッチングを除いたマッチング集合の最大マッチングが元の最大マッチングのサイズを下回るときにはエラーを出す
+        fixedに登録する
+        """
+        pass
 
 
 def __test0_function():
@@ -350,7 +353,6 @@ def __test0_function():
         with open(os.path.join("data",dir_path,"staff.json"),encoding="utf-8")as f:
             staff_ability = json.load(f)
             #pprint(staff_ability)
-
         # 初期設定
         staff_nodes = [i for i,j in enumerate(staff_ability)]
         works_nodes = [i for i,j in enumerate(works)]
@@ -372,11 +374,38 @@ def __test0_function():
         print("")
 
 
+def __test1_function():
+    dir_path="02"
+    with open(os.path.join("data",dir_path,"works.json"),encoding="utf-8")as f:
+        works = json.load(f)
+        #pprint(works)
+    with open(os.path.join("data",dir_path,"staff.json"),encoding="utf-8")as f:
+        staff_ability = json.load(f)
+        #pprint(staff_ability)
+    # 初期設定
+    staff_nodes = [i for i,j in enumerate(staff_ability)]
+    works_nodes = [i for i,j in enumerate(works)]
+    # グラフの初期化
+    mgraph = matchingGraph(
+        staff_nodes,
+        works_nodes
+    )
+    # 辺の追加
+    for i,j in enumerate(staff_ability):
+        for k in j["capable"]:
+            mgraph.add_side(i, works.index(k))
+    # 初期設定ここまで
+    print(mgraph.max_matching())
+
+    # 入れ替え可能な例
+    print(mgraph.exchangeable(0,9))
+    # 入れ替え不可能な例
+    #print(mgraph.exchange(10,9))
+
+
 
 if __name__=="__main__":
-
     start=time.perf_counter()
-    __test0_function()
+    __test1_function()
     end = time.perf_counter()
-
     print("パフォーマンス",(end-start)*1000,"ms")
